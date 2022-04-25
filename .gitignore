@@ -21,6 +21,7 @@ local.properties
 .ijwb
 
 # Visual Studio & Visual Studio Code
+.cache
 .vs
 .vscode
 .ccls
