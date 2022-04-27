@@ -11,3 +11,4 @@ add_subdirectory(${PROJECT_SOURCE_DIR}/vendor/glfw)
 
 create_exec(HelloWorld "src/hello_window.cc")
 create_exec(HelloTriangle "src/hello_triangle.cc")
+create_exec(HelloTriangleExplainVaoVboEbo "src/hello_triangle_explain_vao_vbo_ebo.cc")

@@ -46,29 +46,52 @@ int main() {
   // create VAO
   uint VAO;
   glGenVertexArrays(1, &VAO);
-  glBindVertexArray(VAO);  // [VAO STATE] BEGIN
+  glBindVertexArray(VAO);  // [VAO] BEGIN
 
-  // create VBO
+  // create position_vbo
   // clang-format off
-  float vertices[] = {
+  float positions[] = {
     0.5f, 0.5f, 0.0f,
     0.5f, -0.5f, 0.0f,
     -0.5f, -0.5f, 0.0f,
     -0.5f, 0.5f, 0.0f,
   };
   // clang-format on
-  uint VBO;
-  glGenBuffers(1, &VBO);
+  uint position_vbo;
+  glGenBuffers(1, &position_vbo);
   {
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);  // [VBO STATE] BEGIN
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+    glBindBuffer(GL_ARRAY_BUFFER, position_vbo);  // [position_vbo] BEGIN
+    glBufferData(GL_ARRAY_BUFFER, sizeof(positions), positions, GL_STATIC_DRAW);
 
     // append vertex attribute
     // read vec3 aPos
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float),
                           reinterpret_cast<void*>(0));
     glEnableVertexAttribArray(0);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);  // [VBO STATE] END
+    // glBindBuffer(GL_ARRAY_BUFFER, 0);  // [position_vbo] END
+  }
+
+  // create color_vbo
+  // clang-format off
+  float colors[] = {
+      0.5f,  0.0f,  0.0f, 
+      0.0f,  0.5f, 0.0f,
+      0.0f, 0.0f,  0.5f,
+      0.0f, 0.0f, 0.0f, 
+  };
+  // clang-format on
+  uint color_vbo;
+  glGenBuffers(1, &color_vbo);
+  {
+    glBindBuffer(GL_ARRAY_BUFFER, color_vbo);  // [color_vbo] BEGIN
+    glBufferData(GL_ARRAY_BUFFER, sizeof(colors), colors, GL_STATIC_DRAW);
+
+    // append vertex attribute
+    // read vec3 aColor
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float),
+                          reinterpret_cast<void*>(0));
+    glEnableVertexAttribArray(1);
+    // glBindBuffer(GL_ARRAY_BUFFER, 0);  // [color_vbo] END
   }
 
   // append EBO
@@ -81,22 +104,26 @@ int main() {
   uint EBO;
   glGenBuffers(1, &EBO);
   {
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);  // [EBO STATE] BEGIN
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);  // [EBO] BEGIN
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices,
                  GL_STATIC_DRAW);
   }
 
   // unbind VAO for later use
-  glBindVertexArray(0);  // [VAO STATE] END
-  // glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);  // [EBO STATE] END
+  glBindVertexArray(0);                      // [VAO] END
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);  // [EBO] END
 
   // create vertex shader
   const char* vertexShaderSource = R"__SHADER__(
 #version 330 core
 layout (location = 0) in vec3 aPos;
+layout (location = 1) in vec3 aColor;
+
+out vec4 OutColor;
 
 void main() {
   gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);
+  OutColor = vec4(aColor, 1.0);
 }
 )__SHADER__";
   uint vertexShader = glCreateShader(GL_VERTEX_SHADER);
@@ -114,10 +141,12 @@ void main() {
   // create fragment shader
   const char* fragmentShaderSource = R"__SHADER__(
 #version 330 core
+in vec4 OutColor;
+
 out vec4 FragColor;
 
 void main() {
-  FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);
+  FragColor = OutColor;
 }
 )__SHADER__";
   uint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
@@ -163,7 +192,8 @@ void main() {
 
   glDeleteBuffers(1, &EBO);
   glDeleteVertexArrays(1, &VAO);
-  glDeleteBuffers(1, &VBO);
+  glDeleteBuffers(1, &color_vbo);
+  glDeleteBuffers(1, &position_vbo);
   glDeleteProgram(shaderProgram);
   glfwTerminate();
   return 0;
