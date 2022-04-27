@@ -9,7 +9,7 @@ include(cmake/utils.cmake)
 add_subdirectory(${PROJECT_SOURCE_DIR}/vendor/glad)
 add_subdirectory(${PROJECT_SOURCE_DIR}/vendor/glfw)
 
-# Hello World
+# Hello Window
 create_exec(HelloWorld "src/hello_window.cc")
 
 # Hello Triangle
