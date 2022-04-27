@@ -41,8 +41,12 @@ int main() {
   }
 
   // initialize viewport
-  glViewport(0, 0, 800, 600);
   glfwSetFramebufferSizeCallback(window, OnWindowSizeChangedCallback);
+
+  // create VAO
+  uint VAO;
+  glGenVertexArrays(1, &VAO);
+  glBindVertexArray(VAO);
 
   // create VBO
   // clang-format off
@@ -57,11 +61,6 @@ int main() {
   glGenBuffers(1, &VBO);
   glBindBuffer(GL_ARRAY_BUFFER, VBO);
   glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
-  // create VAO
-  uint VAO;
-  glGenVertexArrays(1, &VAO);
-  glBindVertexArray(VAO);
 
   // append vertex attribute
   // read vec3 aPos
