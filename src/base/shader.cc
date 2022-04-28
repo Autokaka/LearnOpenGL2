@@ -1,4 +1,3 @@
-#include <glad/glad.h>
 #include <fstream>
 #include <iostream>
 #include <sstream>
@@ -10,43 +9,35 @@ std::unique_ptr<Shader> Shader::CreateFromSource(
     const std::string& fragment_shader_source) {
   // create shaders
   char log[512];
-  uint vertex_shader_id =
+  auto vertex_shader =
       CompileShaderFromSource(vertex_shader_source, GL_VERTEX_SHADER, log);
-  if (vertex_shader_id < 0) {
+  if (vertex_shader->GetId() < 0) {
     std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED: " << log
               << std::endl;
     return nullptr;
   }
-  uint fragment_shader_id =
+  auto fragment_shader =
       CompileShaderFromSource(fragment_shader_source, GL_FRAGMENT_SHADER, log);
-  if (fragment_shader_id < 0) {
+  if (fragment_shader->GetId() < 0) {
     std::cout << "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED: " << log
               << std::endl;
-
-    glDeleteProgram(vertex_shader_id);
     return nullptr;
   }
 
   // create program
-  auto shader_instance = std::make_unique<Shader>();
+  uint program_id;
   int success;
-  shader_instance->id_ = glCreateProgram();
-  glAttachShader(shader_instance->id_, vertex_shader_id);
-  glAttachShader(shader_instance->id_, fragment_shader_id);
-  glLinkProgram(shader_instance->id_);
-  glGetProgramiv(shader_instance->id_, GL_LINK_STATUS, &success);
+  program_id = glCreateProgram();
+  glAttachShader(program_id, vertex_shader->GetId());
+  glAttachShader(program_id, fragment_shader->GetId());
+  glLinkProgram(program_id);
+  glGetProgramiv(program_id, GL_LINK_STATUS, &success);
   if (!success) {
-    glGetProgramInfoLog(shader_instance->id_, 512, nullptr, log);
+    glGetProgramInfoLog(program_id, 512, nullptr, log);
     std::cout << "ERROR::SHADER::PROGRAM::LINKING_FAILED: " << log << std::endl;
-
-    glDeleteProgram(vertex_shader_id);
-    glDeleteProgram(fragment_shader_id);
     return nullptr;
   }
-
-  glDeleteProgram(vertex_shader_id);
-  glDeleteProgram(fragment_shader_id);
-  return shader_instance;
+  return std::make_unique<Shader>(program_id);
 }
 
 std::unique_ptr<Shader> Shader::CreateFromFile(
@@ -79,29 +70,39 @@ std::unique_ptr<Shader> Shader::CreateFromFile(
   return Shader::CreateFromSource(vertex_shader_code, fragment_shader_code);
 }
 
-Shader::~Shader() {
-  glDeleteProgram(id_);
-}
-
 void Shader::Use() const {
   glUseProgram(id_);
 }
 
 void Shader::SetBool(const std::string& name, bool value) const {
-  glUniform1i(glGetUniformLocation(GetId(), name.c_str()), value);
+  glUniform1i(glGetUniformLocation(id_, name.c_str()), value);
 }
 
 void Shader::SetInt(const std::string& name, int value) const {
-  glUniform1i(glGetUniformLocation(GetId(), name.c_str()), value);
+  glUniform1i(glGetUniformLocation(id_, name.c_str()), value);
 }
 
 void Shader::SetFloat(const std::string& name, float value) const {
-  glUniform1f(glGetUniformLocation(GetId(), name.c_str()), value);
+  glUniform1f(glGetUniformLocation(id_, name.c_str()), value);
 }
 
-int Shader::CompileShaderFromSource(const std::string& source,
-                                    int shader_type,
-                                    const char* log) {
+void Shader::SetVec2(const std::string& name, glm::vec2 value) const {
+  glUniform2f(glGetUniformLocation(id_, name.c_str()), value[0], value[1]);
+}
+
+void Shader::SetVec3(const std::string& name, glm::vec3 value) const {
+  glUniform3f(glGetUniformLocation(id_, name.c_str()), value[0], value[1],
+              value[2]);
+}
+
+void Shader::SetVec4(const std::string& name, glm::vec4 value) const {
+  glUniform4f(glGetUniformLocation(id_, name.c_str()), value[0], value[1],
+              value[2], value[3]);
+}
+
+SharedGLObject Shader::CompileShaderFromSource(const std::string& source,
+                                               int shader_type,
+                                               const char* log) {
   const char* shader_source_code = source.c_str();
 
   uint shader_id;
@@ -114,8 +115,8 @@ int Shader::CompileShaderFromSource(const std::string& source,
   glGetShaderiv(shader_id, GL_COMPILE_STATUS, &success);
   if (!success) {
     glGetShaderInfoLog(shader_id, 512, nullptr, info_log);
-    return -1;
+    return nullptr;
   }
 
-  return shader_id;
+  return ScopedGLObject::MakeShared(shader_id, glDeleteShader);
 }

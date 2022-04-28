@@ -113,9 +113,8 @@ void main() {
     // set uniform (changingColor) value
     float timeInSeconds = glfwGetTime();
     float greenValue = (std::sin(timeInSeconds) / 2.0f) + 0.5f;
-    int changingColorLocation =
-        glGetUniformLocation(shader_program->GetId(), "changingColor");
-    glUniform4f(changingColorLocation, 0.0f, greenValue, 0.0f, 1.0f);
+    shader_program->SetVec4("changingColor",
+                            glm::vec4(0.0f, greenValue, 0.0f, 1.0f));
 
     glBindVertexArray(VAO);
     glDrawArrays(GL_TRIANGLES, 0, 3);

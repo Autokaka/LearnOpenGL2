@@ -6,11 +6,12 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 add_subdirectory(${PROJECT_SOURCE_DIR}/vendor/glad)
 add_subdirectory(${PROJECT_SOURCE_DIR}/vendor/glfw)
+add_subdirectory(${PROJECT_SOURCE_DIR}/vendor/glm)
 
 function(create_exec TARGET EXEC)
   file(GLOB_RECURSE SRC "src/base/*.h" "src/base/*.cc")
   add_executable(${TARGET} ${EXEC} ${SRC})
-  target_link_libraries(${TARGET} PRIVATE glad glfw)
+  target_link_libraries(${TARGET} PRIVATE glad glfw glm)
   target_include_directories(${TARGET} PRIVATE ${LearnOpenGL_SOURCE_DIR}/src)
 endfunction()
 
