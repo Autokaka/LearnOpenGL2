@@ -13,12 +13,17 @@ class ScopedGLObject {
  public:
   using Deleter = std::function<void(uint32_t id)>;
 
-  static SharedGLObject MakeShared(uint32_t id, const Deleter& deleter) {
+  static SharedGLObject MakeShared(uint32_t id,
+                                   const Deleter& deleter = nullptr) {
     return std::make_shared<ScopedGLObject>(id, deleter);
   }
   explicit ScopedGLObject(uint32_t id, const Deleter& deleter)
       : id_(id), deleter_(deleter) {}
-  ~ScopedGLObject() { deleter_(id_); }
+  ~ScopedGLObject() {
+    if (deleter_) {
+      deleter_(id_);
+    }
+  }
 
   uint32_t GetId() const { return id_; }
 
