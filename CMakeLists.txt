@@ -7,12 +7,17 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 add_subdirectory(${PROJECT_SOURCE_DIR}/vendor/glad)
 add_subdirectory(${PROJECT_SOURCE_DIR}/vendor/glfw)
 add_subdirectory(${PROJECT_SOURCE_DIR}/vendor/glm)
+add_subdirectory(${PROJECT_SOURCE_DIR}/vendor/stb)
 
 function(create_exec TARGET EXEC)
+  file(GLOB_RECURSE RES "res/*")
   file(GLOB_RECURSE SRC "src/base/*.h" "src/base/*.cc")
-  add_executable(${TARGET} ${EXEC} ${SRC})
-  target_link_libraries(${TARGET} PRIVATE glad glfw glm)
+  source_group(TREE ${PROJECT_SOURCE_DIR} FILES ${EXEC} ${SRC} ${RES})
+
+  add_executable(${TARGET} MACOSX_BUNDLE ${EXEC} ${SRC} ${RES})
+  target_link_libraries(${TARGET} PRIVATE glad glfw glm stb)
   target_include_directories(${TARGET} PRIVATE ${LearnOpenGL_SOURCE_DIR}/src)
+  set_target_properties(${TARGET} PROPERTIES RESOURCE "${RES}")
 endfunction()
 
 # Hello Window
@@ -33,3 +38,8 @@ create_exec(ShadersShaderClass "src/shaders/shaders_shader_class.cc")
 create_exec(ShadersTriangleUpsideDown "src/shaders/shaders_triangle_upside_down.cc")
 create_exec(ShadersMovingTriangle "src/shaders/shaders_moving_triangle.cc")
 create_exec(ShadersPassAPosAsFragColor "src/shaders/shaders_pass_a_pos_as_frag_color.cc")
+
+# Textures
+create_exec(TexturesLoadTexture "src/textures/textures_load_texture.cc")
+create_exec(TexturesTextureMixColor "src/textures/textures_texture_mix_color.cc")
+create_exec(TexturesMixTextures "src/textures/textures_mix_textures.cc")
