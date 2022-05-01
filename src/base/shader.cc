@@ -11,14 +11,14 @@ std::unique_ptr<Shader> Shader::CreateFromSource(
   char log[512];
   auto vertex_shader =
       CompileShaderFromSource(vertex_shader_source, GL_VERTEX_SHADER, log);
-  if (vertex_shader->GetId() < 0) {
+  if (!vertex_shader) {
     std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED: " << log
               << std::endl;
     return nullptr;
   }
   auto fragment_shader =
       CompileShaderFromSource(fragment_shader_source, GL_FRAGMENT_SHADER, log);
-  if (fragment_shader->GetId() < 0) {
+  if (!fragment_shader) {
     std::cout << "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED: " << log
               << std::endl;
     return nullptr;
