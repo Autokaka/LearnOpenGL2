@@ -48,10 +48,13 @@ int main() {
   // initialize viewport
   glfwSetFramebufferSizeCallback(window, OnWindowSizeChangedCallback);
 
-  // create texture
-  uint32_t texture;
-  glGenTextures(1, &texture);
-  glBindTexture(GL_TEXTURE_2D, texture);
+  // create textures
+  uint32_t textures[2] = {0};
+  glGenTextures(2, textures);
+  stbi_set_flip_vertically_on_load(true);
+
+  glActiveTexture(GL_TEXTURE0);
+  glBindTexture(GL_TEXTURE_2D, textures[0]);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
@@ -70,6 +73,25 @@ int main() {
   }
   stbi_image_free(data);
 
+  glActiveTexture(GL_TEXTURE1);
+  glBindTexture(GL_TEXTURE_2D, textures[1]);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
+                  GL_LINEAR_MIPMAP_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+  data = stbi_load("awesomeface.png", &width, &height, &nr_channels, 0);
+  if (data) {
+    glTexImage2D(/** define texture format in gl */ GL_TEXTURE_2D, 0, GL_RGB,
+                 width, height, 0,
+                 /** define raw awesomeface.png */ GL_RGBA, GL_UNSIGNED_BYTE,
+                 data);
+    glGenerateMipmap(GL_TEXTURE_2D);
+  } else {
+    std::cout << "Failed to load texture" << std::endl;
+  }
+  stbi_image_free(data);
+
   // create VAO
   uint VAO;
   glGenVertexArrays(1, &VAO);
@@ -78,10 +100,10 @@ int main() {
   // create VBO
   // clang-format off
   float vertices[] = {
-    /** layout location(0) vec3 aPos */ -0.5f, -0.5f, 0.0f, /** layout location(1) vec2 aTexCoord */ 0.0f, 0.0f,
-    /** layout location(0) vec3 aPos */ -0.5f, 0.5f, 0.0f, /** layout location(1) vec2 aTexCoord */ 0.0f, 1.0f,
-    /** layout location(0) vec3 aPos */ 0.5f, 0.5f, 0.0f, /** layout location(1) vec2 aTexCoord */ 1.0f, 1.0f,
-    /** layout location(0) vec3 aPos */ 0.5f, -0.5f, 0.0f, /** layout location(1) vec2 aTexCoord */ 1.0f, 0.0f,
+    /** layout location(0) vec3 aPos */ -0.5f, -0.5f, 0.0f, /** layout location(1) vec3 aTexCoord0 */ 0.0f, 0.0f, /** layout location(2) vec3 aTexCoord1 */ 0.0f, 0.0f,
+    /** layout location(0) vec3 aPos */ -0.5f, 0.5f, 0.0f, /** layout location(1) vec3 aTexCoord0 */ 0.0f, 1.0f, /** layout location(2) vec3 aTexCoord1 */ 0.0f, 2.0f,
+    /** layout location(0) vec3 aPos */ 0.5f, 0.5f, 0.0f, /** layout location(1) vec3 aTexCoord0 */ 1.0f, 1.0f, /** layout location(2) vec3 aTexCoord1 */ 2.0f, 2.0f,
+    /** layout location(0) vec3 aPos */ 0.5f, -0.5f, 0.0f, /** layout location(1) vec3 aTexCoord0 */ 1.0f, 0.0f, /** layout location(2) vec3 aTexCoord1 */ 2.0f, 0.0f,
   };
   // clang-format on
   uint VBO;
@@ -92,13 +114,17 @@ int main() {
 
     // append vertex attribute
     // read vec3 aPos
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float),
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 7 * sizeof(float),
                           reinterpret_cast<void*>(0));
     glEnableVertexAttribArray(0);
-    // read vec2 aTexCoord
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float),
+    // read vec2 aTexCoord0
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 7 * sizeof(float),
                           reinterpret_cast<void*>(3 * sizeof(float)));
     glEnableVertexAttribArray(1);
+    // read vec2 aTexCoord1
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 7 * sizeof(float),
+                          reinterpret_cast<void*>(5 * sizeof(float)));
+    glEnableVertexAttribArray(2);
     glBindBuffer(GL_ARRAY_BUFFER, 0);  // [VBO STATE] END
   }
 
@@ -125,25 +151,30 @@ int main() {
   const char* vertexShaderSource = R"__SHADER__(
 #version 330 core
 layout (location = 0) in vec3 aPos;
-layout (location = 1) in vec2 aTexCoord;
+layout (location = 1) in vec2 aTexCoord0;
+layout (location = 2) in vec2 aTexCoord1;
 
-out vec2 vTexCoord;
+out vec2 vTexCoord0;
+out vec2 vTexCoord1;
 
 void main() {
-  gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);
-  vTexCoord = aTexCoord;
+  gl_Position = vec4(aPos, 1.0);
+  vTexCoord0 = aTexCoord0;
+  vTexCoord1 = aTexCoord1;
 }
 )__SHADER__";
   const char* fragmentShaderSource = R"__SHADER__(
 #version 330 core
-in vec2 vTexCoord;
+in vec2 vTexCoord0;
+in vec2 vTexCoord1;
 
 out vec4 FragColor;
 
-uniform sampler2D uSampler;
+uniform sampler2D uTexture0;
+uniform sampler2D uTexture1;
 
 void main() {
-  FragColor = texture(uSampler, vTexCoord);
+  FragColor = mix(texture(uTexture0, vTexCoord0), texture(uTexture1, vTexCoord1), 0.2);
 }
 )__SHADER__";
   auto shader_program =
@@ -160,6 +191,10 @@ void main() {
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
     shader_program->Use();
+
+    // set uniforms
+    shader_program->SetInt("uTexture0", 0);
+    shader_program->SetInt("uTexture1", 1);
 
     glBindVertexArray(VAO);
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT,

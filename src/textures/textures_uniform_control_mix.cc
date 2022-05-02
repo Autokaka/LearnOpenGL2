@@ -6,19 +6,34 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb/stb_image.h>
 
+#include <algorithm>
 #include <iostream>
 
 #include "base/shader.h"
+
+namespace {
+
+float mix = 0.0f;
 
 void OnWindowSizeChangedCallback(GLFWwindow* window, int width, int height) {
   glViewport(0, 0, width, height);
 }
 
-void ProcessInput(GLFWwindow* window) {
+void ProcessInput(GLFWwindow* window, const Shader& shader_program) {
   if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
     glfwSetWindowShouldClose(window, true);
   }
+  if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
+    mix = std::min(1.0f, mix + 0.01f);
+    shader_program.SetFloat("uMix", mix);
+  }
+  if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
+    mix = std::max(0.0f, mix - 0.01f);
+    shader_program.SetFloat("uMix", mix);
+  }
 }
+
+}  // namespace
 
 int main() {
   // create an opengl window via glfw.
@@ -48,10 +63,13 @@ int main() {
   // initialize viewport
   glfwSetFramebufferSizeCallback(window, OnWindowSizeChangedCallback);
 
-  // create texture
-  uint32_t texture;
-  glGenTextures(1, &texture);
-  glBindTexture(GL_TEXTURE_2D, texture);
+  // create textures
+  uint32_t textures[2] = {0};
+  glGenTextures(2, textures);
+  stbi_set_flip_vertically_on_load(true);
+
+  glActiveTexture(GL_TEXTURE0);
+  glBindTexture(GL_TEXTURE_2D, textures[0]);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
@@ -63,6 +81,25 @@ int main() {
     glTexImage2D(/** define texture format in gl */ GL_TEXTURE_2D, 0, GL_RGB,
                  width, height, 0,
                  /** define raw container.jpg */ GL_RGB, GL_UNSIGNED_BYTE,
+                 data);
+    glGenerateMipmap(GL_TEXTURE_2D);
+  } else {
+    std::cout << "Failed to load texture" << std::endl;
+  }
+  stbi_image_free(data);
+
+  glActiveTexture(GL_TEXTURE1);
+  glBindTexture(GL_TEXTURE_2D, textures[1]);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
+                  GL_LINEAR_MIPMAP_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+  data = stbi_load("awesomeface.png", &width, &height, &nr_channels, 0);
+  if (data) {
+    glTexImage2D(/** define texture format in gl */ GL_TEXTURE_2D, 0, GL_RGB,
+                 width, height, 0,
+                 /** define raw awesomeface.png */ GL_RGBA, GL_UNSIGNED_BYTE,
                  data);
     glGenerateMipmap(GL_TEXTURE_2D);
   } else {
@@ -130,7 +167,7 @@ layout (location = 1) in vec2 aTexCoord;
 out vec2 vTexCoord;
 
 void main() {
-  gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);
+  gl_Position = vec4(aPos, 1.0);
   vTexCoord = aTexCoord;
 }
 )__SHADER__";
@@ -140,10 +177,12 @@ in vec2 vTexCoord;
 
 out vec4 FragColor;
 
-uniform sampler2D uSampler;
+uniform sampler2D uTexture0;
+uniform sampler2D uTexture1;
+uniform float uMix;
 
 void main() {
-  FragColor = texture(uSampler, vTexCoord);
+  FragColor = mix(texture(uTexture0, vTexCoord), texture(uTexture1, vTexCoord), uMix);
 }
 )__SHADER__";
   auto shader_program =
@@ -154,12 +193,16 @@ void main() {
 
   // start rendering loop
   while (!glfwWindowShouldClose(window)) {
-    ProcessInput(window);
+    ProcessInput(window, *shader_program.get());
 
     // do actual rendering
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
     shader_program->Use();
+
+    // set uniforms
+    shader_program->SetInt("uTexture0", 0);
+    shader_program->SetInt("uTexture1", 1);
 
     glBindVertexArray(VAO);
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT,

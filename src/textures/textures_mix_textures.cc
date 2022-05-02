@@ -100,10 +100,10 @@ int main() {
   // create VBO
   // clang-format off
   float vertices[] = {
-    /** layout location(0) vec3 aPos */ -0.5f, -0.5f, 0.0f, /** layout location(1) vec3 aTexCoord */ 0.0f, 0.0f,
-    /** layout location(0) vec3 aPos */ -0.5f, 0.5f, 0.0f, /** layout location(1) vec3 aTexCoord */ 0.0f, 1.0f,
-    /** layout location(0) vec3 aPos */ 0.5f, 0.5f, 0.0f, /** layout location(1) vec3 aTexCoord */ 1.0f, 1.0f,
-    /** layout location(0) vec3 aPos */ 0.5f, -0.5f, 0.0f, /** layout location(1) vec3 aTexCoord */ 1.0f, 0.0f,
+    /** layout location(0) vec3 aPos */ -0.5f, -0.5f, 0.0f, /** layout location(1) vec2 aTexCoord */ 0.0f, 0.0f,
+    /** layout location(0) vec3 aPos */ -0.5f, 0.5f, 0.0f, /** layout location(1) vec2 aTexCoord */ 0.0f, 1.0f,
+    /** layout location(0) vec3 aPos */ 0.5f, 0.5f, 0.0f, /** layout location(1) vec2 aTexCoord */ 1.0f, 1.0f,
+    /** layout location(0) vec3 aPos */ 0.5f, -0.5f, 0.0f, /** layout location(1) vec2 aTexCoord */ 1.0f, 0.0f,
   };
   // clang-format on
   uint VBO;
@@ -118,7 +118,7 @@ int main() {
                           reinterpret_cast<void*>(0));
     glEnableVertexAttribArray(0);
     // read vec2 aTexCoord
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float),
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float),
                           reinterpret_cast<void*>(3 * sizeof(float)));
     glEnableVertexAttribArray(1);
     glBindBuffer(GL_ARRAY_BUFFER, 0);  // [VBO STATE] END

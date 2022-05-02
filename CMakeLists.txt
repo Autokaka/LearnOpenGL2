@@ -43,3 +43,8 @@ create_exec(ShadersPassAPosAsFragColor "src/shaders/shaders_pass_a_pos_as_frag_c
 create_exec(TexturesLoadTexture "src/textures/textures_load_texture.cc")
 create_exec(TexturesTextureMixColor "src/textures/textures_texture_mix_color.cc")
 create_exec(TexturesMixTextures "src/textures/textures_mix_textures.cc")
+create_exec(TexturesHappyFaceHFlipped "src/textures/textures_happy_face_h_flipped.cc")
+create_exec(TexturesTextureWrapping "src/textures/textures_texture_wrapping.cc")
+create_exec(TexturesOnlyViewPart "src/textures/textures_only_view_part.cc")
+create_exec(TexturesOnlyViewPartNearestFiltering "src/textures/textures_only_view_part_nearest_filtering.cc")
+create_exec(TexturesUniformControlMix "src/textures/textures_uniform_control_mix.cc")
