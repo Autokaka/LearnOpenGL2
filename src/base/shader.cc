@@ -1,4 +1,5 @@
 #include <fstream>
+#include <glm/gtc/type_ptr.hpp>
 #include <iostream>
 #include <sstream>
 
@@ -98,6 +99,21 @@ void Shader::SetVec3(const std::string& name, glm::vec3 value) const {
 void Shader::SetVec4(const std::string& name, glm::vec4 value) const {
   glUniform4f(glGetUniformLocation(id_, name.c_str()), value[0], value[1],
               value[2], value[3]);
+}
+
+void Shader::SetMat2(const std::string& name, glm::mat2 value) const {
+  glUniformMatrix2fv(glGetUniformLocation(id_, name.c_str()), 1, GL_FALSE,
+                     glm::value_ptr(value));
+}
+
+void Shader::SetMat3(const std::string& name, glm::mat3 value) const {
+  glUniformMatrix3fv(glGetUniformLocation(id_, name.c_str()), 1, GL_FALSE,
+                     glm::value_ptr(value));
+}
+
+void Shader::SetMat4(const std::string& name, glm::mat4 value) const {
+  glUniformMatrix4fv(glGetUniformLocation(id_, name.c_str()), 1, GL_FALSE,
+                     glm::value_ptr(value));
 }
 
 SharedGLObject Shader::CompileShaderFromSource(const std::string& source,

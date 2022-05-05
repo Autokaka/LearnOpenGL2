@@ -48,3 +48,9 @@ create_exec(TexturesTextureWrapping "src/textures/textures_texture_wrapping.cc")
 create_exec(TexturesOnlyViewPart "src/textures/textures_only_view_part.cc")
 create_exec(TexturesOnlyViewPartNearestFiltering "src/textures/textures_only_view_part_nearest_filtering.cc")
 create_exec(TexturesUniformControlMix "src/textures/textures_uniform_control_mix.cc")
+
+# Transformations
+create_exec(TransformScaleAndRotateBox "src/transformations/transform_scale_and_rotate_box.cc")
+create_exec(TransformTranslateAndRotateBoxWithTime "src/transformations/transform_translate_and_rotate_box_with_time.cc")
+create_exec(TransformRotateAndTranslateBoxWithTime "src/transformations/transform_rotate_and_translate_box_with_time.cc")
+create_exec(Transform2DrawCall2Containers2Transform "src/transformations/transform_two_draw_call_two_containers_two_transform.cc")
