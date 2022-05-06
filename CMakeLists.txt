@@ -54,3 +54,9 @@ create_exec(TransformScaleAndRotateBox "src/transformations/transform_scale_and_
 create_exec(TransformTranslateAndRotateBoxWithTime "src/transformations/transform_translate_and_rotate_box_with_time.cc")
 create_exec(TransformRotateAndTranslateBoxWithTime "src/transformations/transform_rotate_and_translate_box_with_time.cc")
 create_exec(Transform2DrawCall2Containers2Transform "src/transformations/transform_two_draw_call_two_containers_two_transform.cc")
+
+# Coordinate Systems
+create_exec(CoordSystemsMVPMatrix "src/coord_systems/coord_systems_mvp_matrix.cc")
+create_exec(CoordSystems3DBoxWithoutDepthTest "src/coord_systems/coord_systems_3d_box_without_depth_test.cc")
+create_exec(CoordSystems3DBoxWithDepthTest "src/coord_systems/coord_systems_3d_box_with_depth_test.cc")
+create_exec(CoordSystemsMore3DBoxes "src/coord_systems/coord_systems_more_3d_boxes.cc")
