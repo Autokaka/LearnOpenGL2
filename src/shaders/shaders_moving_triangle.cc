@@ -45,6 +45,9 @@ int main() {
 
   // initialize viewport
   glfwSetFramebufferSizeCallback(window, OnWindowSizeChangedCallback);
+  int viewport_width, viewport_height;
+  glfwGetFramebufferSize(window, &viewport_width, &viewport_height);
+  glViewport(0, 0, viewport_width, viewport_height);
 
   // create VAO
   uint VAO;

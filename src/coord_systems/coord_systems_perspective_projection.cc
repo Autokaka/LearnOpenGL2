@@ -21,14 +21,21 @@ namespace {
 
 float fov_offset = 0;
 float aspect_ratio_offset = 0;
-const int window_width = 800;
-const int window_height = 600;
+
+const float window_width = 800.0f;
+const float window_height = 600.0f;
 
 void OnWindowSizeChangedCallback(GLFWwindow* window, int width, int height) {
-  // float new_width = width;
-  // float new_height = width * (window_height / window_width);
-  // glViewport(0, 0, new_width, new_height);
   glViewport(0, 0, width, height);
+}
+
+void UpdateWindowSize(GLFWwindow* window) {
+  float fov_augment_ratio = (45.0f + fov_offset) / 45.0f;
+  float current_aspect_ratio =
+      window_width / window_height + aspect_ratio_offset;
+  float current_window_height = window_height * fov_augment_ratio;
+  float current_window_width = current_window_height * current_aspect_ratio;
+  glfwSetWindowSize(window, current_window_width, current_window_height);
 }
 
 void ProcessInput(GLFWwindow* window) {
@@ -36,23 +43,21 @@ void ProcessInput(GLFWwindow* window) {
     glfwSetWindowShouldClose(window, true);
   }
   if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
-    aspect_ratio_offset = std::max(-0.3f, aspect_ratio_offset - 0.01f);
+    aspect_ratio_offset = std::max(-0.5f, aspect_ratio_offset - 0.01f);
+    UpdateWindowSize(window);
   }
   if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
-    aspect_ratio_offset = std::min(0.3f, aspect_ratio_offset + 0.01f);
+    aspect_ratio_offset = std::min(0.2f, aspect_ratio_offset + 0.01f);
+    UpdateWindowSize(window);
   }
   if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
-    fov_offset = std::max(-15.0f, fov_offset - 0.1f);
+    fov_offset = std::max(-15.0f, fov_offset - 0.3f);
+    UpdateWindowSize(window);
   }
   if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
-    fov_offset = std::min(15.0f, fov_offset + 0.1f);
+    fov_offset = std::min(15.0f, fov_offset + 0.3f);
+    UpdateWindowSize(window);
   }
-  float fov_augment_ratio = (45.0f + fov_offset) / 45.0f;
-  float new_aspect_ratio = window_width / window_height + aspect_ratio_offset;
-  float new_window_width = window_width * new_aspect_ratio;
-  float new_window_height = window_height;
-  glfwSetWindowSize(window, new_window_width * fov_augment_ratio,
-                    new_window_height * fov_augment_ratio);
 }
 
 }  // namespace
@@ -85,6 +90,9 @@ int main() {
 
   // initialize viewport
   glfwSetFramebufferSizeCallback(window, OnWindowSizeChangedCallback);
+  int viewport_width, viewport_height;
+  glfwGetFramebufferSize(window, &viewport_width, &viewport_height);
+  glViewport(0, 0, viewport_width, viewport_height);
 
   // create textures
   uint32_t textures[2] = {0};

@@ -41,6 +41,9 @@ int main() {
   // initialize viewport
   glViewport(0, 0, 800, 600);
   glfwSetFramebufferSizeCallback(window, OnWindowSizeChangedCallback);
+  int viewport_width, viewport_height;
+  glfwGetFramebufferSize(window, &viewport_width, &viewport_height);
+  glViewport(0, 0, viewport_width, viewport_height);
 
   // start rendering loop
   while (!glfwWindowShouldClose(window)) {
