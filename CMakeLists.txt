@@ -17,7 +17,10 @@ function(create_exec TARGET EXEC)
   add_executable(${TARGET} MACOSX_BUNDLE ${EXEC} ${SRC} ${RES})
   target_link_libraries(${TARGET} PRIVATE glad glfw glm stb)
   target_include_directories(${TARGET} PRIVATE ${LearnOpenGL_SOURCE_DIR}/src)
-  set_target_properties(${TARGET} PROPERTIES RESOURCE "${RES}")
+  set_target_properties(${TARGET} PROPERTIES 
+    MACOSX_BUNDLE_INFO_PLIST "${PROJECT_SOURCE_DIR}/res/Info.plist"
+    RESOURCE "${RES}"
+  )
 endfunction()
 
 # Hello Window
@@ -60,3 +63,6 @@ create_exec(CoordSystemsMVPMatrix "src/coord_systems/coord_systems_mvp_matrix.cc
 create_exec(CoordSystems3DBoxWithoutDepthTest "src/coord_systems/coord_systems_3d_box_without_depth_test.cc")
 create_exec(CoordSystems3DBoxWithDepthTest "src/coord_systems/coord_systems_3d_box_with_depth_test.cc")
 create_exec(CoordSystemsMore3DBoxes "src/coord_systems/coord_systems_more_3d_boxes.cc")
+create_exec(CoordSystemsPerspectiveProjection "src/coord_systems/coord_systems_perspective_projection.cc")
+create_exec(CoordSystemsViewMatrix "src/coord_systems/coord_systems_view_matrix.cc")
+create_exec(CoordSystemsRotateEvery3rdBox "src/coord_systems/coord_systems_rotate_every_3rd_box.cc")
