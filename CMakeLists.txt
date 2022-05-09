@@ -66,3 +66,8 @@ create_exec(CoordSystemsMore3DBoxes "src/coord_systems/coord_systems_more_3d_box
 create_exec(CoordSystemsPerspectiveProjection "src/coord_systems/coord_systems_perspective_projection.cc")
 create_exec(CoordSystemsViewMatrix "src/coord_systems/coord_systems_view_matrix.cc")
 create_exec(CoordSystemsRotateEvery3rdBox "src/coord_systems/coord_systems_rotate_every_3rd_box.cc")
+
+# Camera
+create_exec(CameraLookAt "src/camera/camera_look_at.cc")
+create_exec(CameraMoveAround "src/camera/camera_move_around.cc")
+create_exec(CameraLookAround "src/camera/camera_look_around.cc")
