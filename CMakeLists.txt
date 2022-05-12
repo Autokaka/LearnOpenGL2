@@ -71,3 +71,4 @@ create_exec(CoordSystemsRotateEvery3rdBox "src/coord_systems/coord_systems_rotat
 create_exec(CameraLookAt "src/camera/camera_look_at.cc")
 create_exec(CameraMoveAround "src/camera/camera_move_around.cc")
 create_exec(CameraLookAround "src/camera/camera_look_around.cc")
+create_exec(CameraCameraClass "src/camera/camera_camera_class.cc")
