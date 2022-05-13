@@ -26,13 +26,10 @@ class Camera final {
   void LookAt(const glm::vec3& world_target, const glm::vec3& world_up);
   void Yaw(float degrees);
   void Pitch(float degrees);
-  void Roll(float degrees);
   void PitchUp(float step_degrees);
   void PitchDown(float step_degrees);
   void YawLeft(float step_degrees);
   void YawRight(float step_degrees);
-  void RollLeft(float step_degrees);
-  void RollRight(float step_degrees);
 
   glm::mat4 GetTransformation() const;
 
@@ -42,7 +39,6 @@ class Camera final {
 
   float local_x_rotate_degrees_;
   float local_y_rotate_degrees_;
-  float local_z_rotate_degrees_;
   glm::vec3 local_position_;
 
   glm::mat4 GetCameraTranslateMatrix() const;

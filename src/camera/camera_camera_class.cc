@@ -57,12 +57,6 @@ void ProcessInput(GLFWwindow* window) {
   if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
     camera.YawRight(1);
   }
-  if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS) {
-    camera.RollLeft(1);
-  }
-  if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS) {
-    camera.RollRight(1);
-  }
 }
 
 }  // namespace
@@ -262,6 +256,7 @@ void main() {
 
   camera.SetPosition(glm::vec3(0, 0, 1));
   camera.LookAt(glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
+  camera.Yaw(-90 + 45);
 
   // start rendering loop
   while (!glfwWindowShouldClose(window)) {

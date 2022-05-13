@@ -12,7 +12,6 @@ Camera::Camera()
       camera_position_(glm::vec3(0, 0, 0)),
       local_x_rotate_degrees_(0),
       local_y_rotate_degrees_(0),
-      local_z_rotate_degrees_(0),
       local_position_(glm::vec3(0, 0, 0)) {
   SetPosition(glm::vec3(0, 0, 0));
   LookAt(glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
@@ -66,7 +65,6 @@ void Camera::SetRotation(const glm::mat4& rotation) {
   camera_rotation_ = rotation;
   local_x_rotate_degrees_ = 0;
   local_y_rotate_degrees_ = 0;
-  local_z_rotate_degrees_ = 0;
 }
 
 void Camera::LookAt(const glm::vec3& world_target, const glm::vec3& world_up) {
@@ -85,17 +83,12 @@ void Camera::LookAt(const glm::vec3& world_target, const glm::vec3& world_up) {
 }
 
 void Camera::Yaw(float degrees) {
-  local_y_rotate_degrees_ = degrees;
+  local_y_rotate_degrees_ = -90 - degrees;
   SetRotation(GetRotation());
 }
 
 void Camera::Pitch(float degrees) {
   local_x_rotate_degrees_ = degrees;
-  SetRotation(GetRotation());
-}
-
-void Camera::Roll(float degrees) {
-  local_z_rotate_degrees_ = degrees;
   SetRotation(GetRotation());
 }
 
@@ -115,15 +108,6 @@ void Camera::YawLeft(float step_degrees) {
 
 void Camera::YawRight(float step_degrees) {
   YawLeft(-step_degrees);
-}
-
-void Camera::RollLeft(float step_degrees) {
-  local_z_rotate_degrees_ += step_degrees;
-  SetRotation(GetRotation());
-}
-
-void Camera::RollRight(float step_degrees) {
-  RollLeft(-step_degrees);
 }
 
 glm::mat4 Camera::GetTransformation() const {
@@ -157,9 +141,6 @@ glm::mat4 Camera::GetLocalRotateMatrix() const {
   local_rotation =
       glm::rotate(local_rotation, glm::radians(local_x_rotate_degrees_),
                   glm::vec3(1, 0, 0));
-  local_rotation =
-      glm::rotate(local_rotation, glm::radians(local_z_rotate_degrees_),
-                  glm::vec3(0, 0, 1));
   return local_rotation;
 }
 
