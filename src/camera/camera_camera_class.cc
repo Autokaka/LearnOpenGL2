@@ -29,7 +29,8 @@ void ProcessInput(GLFWwindow* window) {
   if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
     glfwSetWindowShouldClose(window, true);
   }
-#pragma mark - position
+
+#pragma mark - Position
   if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
     camera.GoForward(0.1f);
   }
@@ -43,7 +44,7 @@ void ProcessInput(GLFWwindow* window) {
     camera.GoRight(0.1f);
   }
 
-#pragma mark - rotation
+#pragma mark - Rotation
   if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
     camera.PitchUp(1);
   }
