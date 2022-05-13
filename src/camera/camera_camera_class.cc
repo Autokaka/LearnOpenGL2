@@ -261,7 +261,7 @@ void main() {
   };
 
   camera.SetPosition(glm::vec3(0, 0, 1));
-  camera.LookAt(glm::vec3(0, 0, 0), glm::vec3(0, 0, 1));
+  camera.LookAt(glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
 
   // start rendering loop
   while (!glfwWindowShouldClose(window)) {
