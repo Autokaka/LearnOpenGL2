@@ -6,9 +6,16 @@
 
 #include <glm/glm.hpp>
 
+enum class CameraMode {
+  kFPS,
+  kFly,
+};
+
 class Camera final {
  public:
-  Camera();
+  explicit Camera(const CameraMode& mode = CameraMode::kFly);
+
+  CameraMode mode;
 
   // position
   glm::vec3 GetPosition() const;

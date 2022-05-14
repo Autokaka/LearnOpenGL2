@@ -7,12 +7,7 @@
 
 #include "camera.h"
 
-Camera::Camera()
-    : camera_rotation_(glm::mat4(1.0f)),
-      camera_position_(glm::vec3(0, 0, 0)),
-      local_x_rotate_degrees_(0),
-      local_y_rotate_degrees_(0),
-      local_position_(glm::vec3(0, 0, 0)) {
+Camera::Camera(const CameraMode& mode) : mode(mode) {
   SetPosition(glm::vec3(0, 0, 0));
   LookAt(glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
 }
@@ -89,12 +84,16 @@ void Camera::Yaw(float degrees) {
 
 void Camera::Pitch(float degrees) {
   local_x_rotate_degrees_ = degrees;
-  SetRotation(GetRotation());
+  if (mode == CameraMode::kFly) {
+    SetRotation(GetRotation());
+  }
 }
 
 void Camera::PitchUp(float step_degrees) {
   local_x_rotate_degrees_ += step_degrees;
-  SetRotation(GetRotation());
+  if (mode == CameraMode::kFly) {
+    SetRotation(GetRotation());
+  }
 }
 
 void Camera::PitchDown(float step_degrees) {

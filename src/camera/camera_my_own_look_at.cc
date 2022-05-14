@@ -253,7 +253,23 @@ void main() {
   };
 
   camera.SetPosition(glm::vec3(0, 0, 1));
-  camera.LookAt(glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
+  {  // camera.LookAt(glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
+    const glm::vec3& world_target = glm::vec3(0, 0, 0);
+    const glm::vec3& world_up = glm::vec3(0, 1, 0);
+    camera.SetRotation(glm::mat4(1.0f));
+    const glm::vec3& camera_z =
+        glm::normalize(camera.GetPosition() - world_target);
+    const glm::vec3& camera_x = glm::normalize(glm::cross(world_up, camera_z));
+    const glm::vec3& camera_y = glm::cross(camera_z, camera_x);
+    // clang-format off
+    camera.SetRotation({
+      camera_x[0], camera_x[1], camera_x[2], 0,
+      camera_y[0], camera_y[1], camera_y[2], 0,
+      camera_z[0], camera_z[1], camera_z[2], 0,
+                0,           0,           0, 1,
+    });
+    // clang-format on
+  }
 
   // start rendering loop
   while (!glfwWindowShouldClose(window)) {
