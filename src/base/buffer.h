@@ -12,6 +12,7 @@
 #pragma mark - Attribute
 
 enum class AttributeType {
+  kCustom = 0,
   kFloat = 1,
   kVec2 = 2,
   kVec3 = 3,
@@ -19,7 +20,6 @@ enum class AttributeType {
   kMat2 = 4,
   kMat3 = 9,
   kMat4 = 16,
-  kCustom,
 };
 
 class Attribute final {
