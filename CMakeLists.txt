@@ -74,3 +74,6 @@ create_exec(CameraLookAround "src/camera/camera_look_around.cc")
 create_exec(CameraCameraClass "src/camera/camera_camera_class.cc")
 create_exec(CameraFPSMode "src/camera/camera_fps_mode.cc")
 create_exec(CameraMyOwnLookAt "src/camera/camera_my_own_look_at.cc")
+
+# lighting
+create_exec(LightingColor "src/lighting/lighting_color.cc")
