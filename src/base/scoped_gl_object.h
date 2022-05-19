@@ -6,19 +6,14 @@
 
 #include "macros.h"
 
-class ScopedGLObject;
-using SharedGLObject = std::shared_ptr<ScopedGLObject>;
-
-class ScopedGLObject {
+class ScopedGLObject final {
  public:
+  using SharedGLObject = std::shared_ptr<ScopedGLObject>;
   using Deleter = std::function<void(uint32_t id)>;
 
-  static SharedGLObject MakeShared(uint32_t id,
-                                   const Deleter& deleter = nullptr) {
-    return std::make_shared<ScopedGLObject>(id, deleter);
+  static SharedGLObject Create(uint32_t id, const Deleter& deleter) {
+    return std::shared_ptr<ScopedGLObject>(new ScopedGLObject(id, deleter));
   }
-  explicit ScopedGLObject(uint32_t id, const Deleter& deleter)
-      : id_(id), deleter_(deleter) {}
   ~ScopedGLObject() {
     if (deleter_) {
       deleter_(id_);
@@ -27,11 +22,13 @@ class ScopedGLObject {
 
   uint32_t GetId() const { return id_; }
 
- protected:
-  const uint32_t id_;
-
  private:
+  const uint32_t id_;
   const Deleter deleter_;
+
+  explicit ScopedGLObject(uint32_t id, const Deleter& deleter)
+      : id_(id), deleter_(deleter) {}
 
   DISALLOW_COPY_ASSIGN_AND_MOVE(ScopedGLObject);
 };
+using SharedGLObject = ScopedGLObject::SharedGLObject;

@@ -22,12 +22,9 @@
   TypeName() = delete;                           \
   DISALLOW_COPY_ASSIGN_AND_MOVE(TypeName)
 
-#define MAKE_SHARED_CONSTRUCTOR(TypeName)                                  \
-  template <typename... Arg>                                               \
-  std::shared_ptr<TypeName> static Create(Arg&&... args) {                 \
-    struct EnableMakeShared : public TypeName {                            \
-      explicit EnableMakeShared(Arg&&... args)                             \
-          : TypeName(std::forward<Arg>(args)...) {}                        \
-    };                                                                     \
-    return std::make_shared<EnableMakeShared>(std::forward<Arg>(args)...); \
+#define MAKE_SHARED_CONSTRUCTOR(TypeName, FuncName)          \
+  template <typename... Arg>                                 \
+  std::shared_ptr<TypeName> static FuncName(Arg&&... args) { \
+    return std::shared_ptr<TypeName>(                        \
+        new TypeName(std::forward<Arg>(args)...));           \
   }

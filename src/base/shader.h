@@ -5,18 +5,24 @@
 #include <memory>
 #include <string>
 
+#include "base/scoped_gl_object.h"
 #include "macros.h"
-#include "scoped_gl_object.h"
 
-class Shader final : public ScopedGLObject {
+enum class ShaderType {
+  kVertex = GL_VERTEX_SHADER,
+  kFragment = GL_FRAGMENT_SHADER,
+};
+
+class Shader final {
  public:
-  static std::unique_ptr<Shader> CreateFromSource(
+  using SharedShader = std::shared_ptr<Shader>;
+
+  static SharedShader CreateFromSource(
       const std::string& vertex_shader_source,
       const std::string& fragment_shader_source);
-  static std::unique_ptr<Shader> CreateFromFile(
-      const std::string& vertex_shader_path,
-      const std::string& fragment_shader_path);
-  explicit Shader(uint32_t id) : ScopedGLObject(id, glDeleteProgram) {}
+  static SharedShader CreateFromFile(const std::string& vertex_shader_path,
+                                     const std::string& fragment_shader_path);
+  ~Shader();
 
   void Use() const;
 
@@ -33,7 +39,14 @@ class Shader final : public ScopedGLObject {
   void SetMat4(const std::string& name, glm::mat4 value) const;
 
  private:
-  static SharedGLObject CompileShaderFromSource(const std::string& source,
-                                                int shader_type,
-                                                const char* log = nullptr);
+  GLuint id_;
+
+  MAKE_SHARED_CONSTRUCTOR(Shader, Create);
+  explicit Shader(uint32_t id);
+
+  static SharedGLObject CompileShaderFromSource(const char* source,
+                                                const ShaderType& shader_type);
+
+  DISALLOW_COPY_ASSIGN_AND_MOVE(Shader);
 };
+using SharedShader = Shader::SharedShader;

@@ -5,22 +5,26 @@
 
 #include "shader.h"
 
-std::unique_ptr<Shader> Shader::CreateFromSource(
+SharedShader Shader::CreateFromSource(
     const std::string& vertex_shader_source,
     const std::string& fragment_shader_source) {
   // create shaders
-  char log[512];
-  auto vertex_shader =
-      CompileShaderFromSource(vertex_shader_source, GL_VERTEX_SHADER, log);
-  if (!vertex_shader) {
-    std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED: " << log
+  SharedGLObject vertex_shader, fragment_shader;
+
+  try {
+    vertex_shader = CompileShaderFromSource(vertex_shader_source.c_str(),
+                                            ShaderType::kVertex);
+  } catch (const char* e) {
+    std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED: " << e
               << std::endl;
     return nullptr;
   }
-  auto fragment_shader =
-      CompileShaderFromSource(fragment_shader_source, GL_FRAGMENT_SHADER, log);
-  if (!fragment_shader) {
-    std::cout << "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED: " << log
+
+  try {
+    fragment_shader = CompileShaderFromSource(fragment_shader_source.c_str(),
+                                              ShaderType::kFragment);
+  } catch (const char* e) {
+    std::cout << "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED: " << e
               << std::endl;
     return nullptr;
   }
@@ -28,22 +32,24 @@ std::unique_ptr<Shader> Shader::CreateFromSource(
   // create program
   uint program_id;
   int success;
+  char exception[512];
   program_id = glCreateProgram();
   glAttachShader(program_id, vertex_shader->GetId());
   glAttachShader(program_id, fragment_shader->GetId());
   glLinkProgram(program_id);
   glGetProgramiv(program_id, GL_LINK_STATUS, &success);
   if (!success) {
-    glGetProgramInfoLog(program_id, 512, nullptr, log);
-    std::cout << "ERROR::SHADER::PROGRAM::LINKING_FAILED: " << log << std::endl;
+    glGetProgramInfoLog(program_id, 512, nullptr, exception);
+    std::cout << "ERROR::SHADER::PROGRAM::LINKING_FAILED: " << exception
+              << std::endl;
     return nullptr;
   }
-  return std::make_unique<Shader>(program_id);
+
+  return std::shared_ptr<Shader>(new Shader(program_id));
 }
 
-std::unique_ptr<Shader> Shader::CreateFromFile(
-    const std::string& vertex_shader_path,
-    const std::string& fragment_shader_path) {
+SharedShader Shader::CreateFromFile(const std::string& vertex_shader_path,
+                                    const std::string& fragment_shader_path) {
   // load shaders from file
   std::ifstream vertex_shader_file;
   std::ifstream fragment_shader_file;
@@ -65,10 +71,17 @@ std::unique_ptr<Shader> Shader::CreateFromFile(
     vertex_shader_code = vertex_shader_stream.str();
     fragment_shader_code = fragment_shader_stream.str();
   } catch (std::ifstream::failure e) {
-    std::cout << "ERROR::SHADER::FAILED_TO_READ_FILE" << std::endl;
+    std::cout << "ERROR::SHADER::FAILED_TO_READ_FILE: " << e.what()
+              << std::endl;
   }
 
   return Shader::CreateFromSource(vertex_shader_code, fragment_shader_code);
+}
+
+Shader::Shader(uint32_t id) : id_(id) {}
+
+Shader::~Shader() {
+  glDeleteProgram(id_);
 }
 
 void Shader::Use() const {
@@ -116,23 +129,23 @@ void Shader::SetMat4(const std::string& name, glm::mat4 value) const {
                      glm::value_ptr(value));
 }
 
-SharedGLObject Shader::CompileShaderFromSource(const std::string& source,
-                                               int shader_type,
-                                               const char* log) {
-  const char* shader_source_code = source.c_str();
+SharedGLObject Shader::CompileShaderFromSource(const char* source,
+                                               const ShaderType& shader_type) {
+  if (!source) {
+    throw "Empty shader source code";
+  }
 
-  uint shader_id;
   int success;
-  char info_log[512];
+  char exception[512];
 
-  shader_id = glCreateShader(shader_type);
-  glShaderSource(shader_id, 1, &shader_source_code, nullptr);
+  GLuint shader_id = glCreateShader(static_cast<GLenum>(shader_type));
+  glShaderSource(shader_id, 1, &source, nullptr);
   glCompileShader(shader_id);
   glGetShaderiv(shader_id, GL_COMPILE_STATUS, &success);
   if (!success) {
-    glGetShaderInfoLog(shader_id, 512, nullptr, info_log);
-    return nullptr;
+    glGetShaderInfoLog(shader_id, 512, nullptr, exception);
+    throw exception;
   }
 
-  return ScopedGLObject::MakeShared(shader_id, glDeleteShader);
+  return ScopedGLObject::Create(shader_id, glDeleteShader);
 }
