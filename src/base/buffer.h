@@ -57,7 +57,8 @@ class Buffer {
 
 #pragma mark - VertexBuffer
 
-class VertexBuffer final : public Buffer<float> {
+class VertexBuffer final : public Buffer<float>,
+                           std::enable_shared_from_this<VertexBuffer> {
  public:
   using SharedVertexBuffer = std::shared_ptr<VertexBuffer>;
 
@@ -84,7 +85,8 @@ using SharedVertexBuffer = VertexBuffer::SharedVertexBuffer;
 
 #pragma mark - IndexBuffer
 
-class IndexBuffer final : public Buffer<uint32_t> {
+class IndexBuffer final : public Buffer<uint32_t>,
+                          std::enable_shared_from_this<IndexBuffer> {
  public:
   using SharedElementBuffer = std::shared_ptr<IndexBuffer>;
 
@@ -100,7 +102,7 @@ using SharedElementBuffer = IndexBuffer::SharedElementBuffer;
 
 #pragma mark - VertexPainter
 
-class VertexPainter final {
+class VertexPainter final : std::enable_shared_from_this<VertexPainter> {
  public:
   using SharedVertexPainter = std::shared_ptr<VertexPainter>;
 

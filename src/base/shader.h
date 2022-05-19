@@ -13,7 +13,7 @@ enum class ShaderType {
   kFragment = GL_FRAGMENT_SHADER,
 };
 
-class Shader final {
+class Shader final : public std::enable_shared_from_this<Shader> {
  public:
   using SharedShader = std::shared_ptr<Shader>;
 
