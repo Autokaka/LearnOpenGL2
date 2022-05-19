@@ -14,7 +14,7 @@ SharedShader Shader::CreateFromSource(
   try {
     vertex_shader = CompileShaderFromSource(vertex_shader_source.c_str(),
                                             ShaderType::kVertex);
-  } catch (const char* e) {
+  } catch (const std::string& e) {
     std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED: " << e
               << std::endl;
     return nullptr;
@@ -23,7 +23,7 @@ SharedShader Shader::CreateFromSource(
   try {
     fragment_shader = CompileShaderFromSource(fragment_shader_source.c_str(),
                                               ShaderType::kFragment);
-  } catch (const char* e) {
+  } catch (const std::string& e) {
     std::cout << "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED: " << e
               << std::endl;
     return nullptr;
@@ -138,14 +138,18 @@ SharedGLObject Shader::CompileShaderFromSource(const char* source,
   int success;
   char exception[512];
 
-  GLuint shader_id = glCreateShader(static_cast<GLenum>(shader_type));
-  glShaderSource(shader_id, 1, &source, nullptr);
-  glCompileShader(shader_id);
-  glGetShaderiv(shader_id, GL_COMPILE_STATUS, &success);
+  const auto shader = ScopedGLObject::Create(
+      [&shader_type]() -> GLuint {
+        return glCreateShader(static_cast<GLenum>(shader_type));
+      },
+      glDeleteShader);
+  glShaderSource(shader->GetId(), 1, &source, nullptr);
+  glCompileShader(shader->GetId());
+  glGetShaderiv(shader->GetId(), GL_COMPILE_STATUS, &success);
   if (!success) {
-    glGetShaderInfoLog(shader_id, 512, nullptr, exception);
-    throw exception;
+    glGetShaderInfoLog(shader->GetId(), 512, nullptr, exception);
+    throw std::string(exception);
   }
 
-  return ScopedGLObject::Create(shader_id, glDeleteShader);
+  return shader;
 }

@@ -3,9 +3,6 @@
 #include <GLFW/glfw3.h>
 // clang-format on
 
-#define STB_IMAGE_IMPLEMENTATION
-#include <stb/stb_image.h>
-
 #include <algorithm>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -14,11 +11,13 @@
 
 #include "base/buffer.h"
 #include "base/camera.h"
+#include "base/device.h"
 #include "base/shader.h"
 
 namespace {
 
 Camera camera;
+SharedGPUDevice device = GPUDevice::Create();
 
 void OnWindowSizeChangedCallback(GLFWwindow* window, int width, int height) {
   glViewport(0, 0, width, height);
@@ -91,149 +90,102 @@ int main() {
   glfwGetFramebufferSize(window, &viewport_width, &viewport_height);
   glViewport(0, 0, viewport_width, viewport_height);
 
-  // create textures
-  uint32_t textures[2] = {0};
-  glGenTextures(2, textures);
-  stbi_set_flip_vertically_on_load(true);
-
-  glActiveTexture(GL_TEXTURE0);
-  glBindTexture(GL_TEXTURE_2D, textures[0]);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
-                  GL_LINEAR_MIPMAP_LINEAR);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-  int width, height, nr_channels;
-  u_char* data = stbi_load("container.jpg", &width, &height, &nr_channels, 0);
-  if (data) {
-    glTexImage2D(/** define texture format in gl */ GL_TEXTURE_2D, 0, GL_RGB,
-                 width, height, 0,
-                 /** define raw container.jpg */ GL_RGB, GL_UNSIGNED_BYTE,
-                 data);
-    glGenerateMipmap(GL_TEXTURE_2D);
-  } else {
-    std::cout << "Failed to load texture" << std::endl;
-  }
-  stbi_image_free(data);
-
-  glActiveTexture(GL_TEXTURE1);
-  glBindTexture(GL_TEXTURE_2D, textures[1]);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
-                  GL_LINEAR_MIPMAP_LINEAR);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-  data = stbi_load("awesomeface.png", &width, &height, &nr_channels, 0);
-  if (data) {
-    glTexImage2D(/** define texture format in gl */ GL_TEXTURE_2D, 0, GL_RGB,
-                 width, height, 0,
-                 /** define raw awesomeface.png */ GL_RGBA, GL_UNSIGNED_BYTE,
-                 data);
-    glGenerateMipmap(GL_TEXTURE_2D);
-  } else {
-    std::cout << "Failed to load texture" << std::endl;
-  }
-  stbi_image_free(data);
-
   // create VBO
   // clang-format off
   SharedVertexBuffer vbo = VertexBuffer::Create(std::vector<float>({
-    -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
-     0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
-     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-    -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-    -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+    -0.5f, -0.5f, -0.5f,  
+     0.5f, -0.5f, -0.5f, 
+     0.5f,  0.5f, -0.5f,  
+     0.5f,  0.5f, -0.5f,  
+    -0.5f,  0.5f, -0.5f,  
+    -0.5f, -0.5f, -0.5f,  
 
-    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-     0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-     0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-     0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-    -0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
-    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+    -0.5f, -0.5f,  0.5f,  
+     0.5f, -0.5f,  0.5f,  
+     0.5f,  0.5f,  0.5f, 
+     0.5f,  0.5f,  0.5f,  
+    -0.5f,  0.5f,  0.5f,  
+    -0.5f, -0.5f,  0.5f,  
 
-    -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-    -0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-    -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+    -0.5f,  0.5f,  0.5f, 
+    -0.5f,  0.5f, -0.5f, 
+    -0.5f, -0.5f, -0.5f, 
+    -0.5f, -0.5f, -0.5f, 
+    -0.5f, -0.5f,  0.5f, 
+    -0.5f,  0.5f,  0.5f, 
 
-     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-     0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-     0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-     0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+     0.5f,  0.5f,  0.5f,  
+     0.5f,  0.5f, -0.5f, 
+     0.5f, -0.5f, -0.5f, 
+     0.5f, -0.5f, -0.5f,  
+     0.5f, -0.5f,  0.5f,  
+     0.5f,  0.5f,  0.5f, 
 
-    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-     0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
-     0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-     0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+    -0.5f, -0.5f, -0.5f,  
+     0.5f, -0.5f, -0.5f, 
+     0.5f, -0.5f,  0.5f,  
+     0.5f, -0.5f,  0.5f, 
+    -0.5f, -0.5f,  0.5f,  
+    -0.5f, -0.5f, -0.5f, 
 
-    -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-    -0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
-    -0.5f,  0.5f, -0.5f,  0.0f, 1.0f
+    -0.5f,  0.5f, -0.5f,  
+     0.5f,  0.5f, -0.5f,  
+     0.5f,  0.5f,  0.5f,  
+     0.5f,  0.5f,  0.5f,  
+    -0.5f,  0.5f,  0.5f,  
+    -0.5f,  0.5f, -0.5f,  
   }), std::vector<Attribute>({
-    { "aPos", AttributeType::kVec3 },
-    { "aTexCoord", AttributeType::kVec2 }
+    { "a_position", AttributeType::kVec3 },
   }));
   // clang-format on
-
-  // create VAO
-  SharedVertexPainter vpo = VertexPainter::Create(vbo);
-  vpo->Submit();
+  device->UseVertexBuffer(vbo);
 
   // create shader program
-  const char* vertexShaderSource = R"__SHADER__(
+  const char* common_vsh = R"__SHADER__(
 #version 330 core
-layout (location = 0) in vec3 aPos;
-layout (location = 1) in vec2 aTexCoord;
+layout (location = 0) in vec3 a_position;
 
-out vec2 vTexCoord;
-
-uniform mat4 uModel;
-uniform mat4 uView;
-uniform mat4 uProjection;
+uniform mat4 u_model;
+uniform mat4 u_view;
+uniform mat4 u_projection;
 
 void main() {
-  gl_Position = uProjection * uView * uModel * vec4(aPos, 1.0);
-  vTexCoord = aTexCoord;
+  gl_Position = u_projection * u_view * u_model * vec4(a_position, 1.0);
 }
 )__SHADER__";
-  const char* fragmentShaderSource = R"__SHADER__(
+  const char* lighted_fsh = R"__SHADER__(
 #version 330 core
-in vec2 vTexCoord;
+
+uniform vec4 u_entity_color;
+uniform vec4 u_light_color;
 
 out vec4 FragColor;
 
-uniform sampler2D uTexture0;
-uniform sampler2D uTexture1;
-
 void main() {
-  FragColor = mix(texture(uTexture0, vTexCoord), texture(uTexture1, vTexCoord), 0.2);
+  FragColor = u_entity_color * u_light_color;
 }
 )__SHADER__";
-  auto shader_program =
-      Shader::CreateFromSource(vertexShaderSource, fragmentShaderSource);
-  if (!shader_program) {
+  const char* light_fsh = R"__SHADER__(
+#version 330 core
+
+uniform vec4 u_light_color;
+
+out vec4 FragColor;
+
+void main() {
+  FragColor = u_light_color;
+}
+)__SHADER__";
+  auto lighted_shader_program =
+      Shader::CreateFromSource(common_vsh, lighted_fsh);
+  auto lighting_shader_program =
+      Shader::CreateFromSource(common_vsh, light_fsh);
+  if (!lighted_shader_program || !lighting_shader_program) {
     return -1;
   }
 
   glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
   glEnable(GL_DEPTH_TEST);
-  glm::vec3 cube_positions[] = {
-      glm::vec3(0.0f, 0.0f, 0.0f),    glm::vec3(2.0f, 5.0f, -15.0f),
-      glm::vec3(-1.5f, -2.2f, -2.5f), glm::vec3(-3.8f, -2.0f, -12.3f),
-      glm::vec3(2.4f, -0.4f, -3.5f),  glm::vec3(-1.7f, 3.0f, -7.5f),
-      glm::vec3(1.3f, -2.0f, -2.5f),  glm::vec3(1.5f, 2.0f, -2.5f),
-      glm::vec3(1.5f, 0.2f, -1.5f),   glm::vec3(-1.3f, 1.0f, -1.5f),
-  };
 
   camera.SetPosition(glm::vec3(0, 0, 1));
   camera.LookAt(glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
@@ -244,25 +196,32 @@ void main() {
 
     // do actual rendering
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    shader_program->Use();
-
     glm::mat4 view = glm::inverse(camera.GetTransformation());
-    shader_program->SetMat4("uView", view);
-    for (auto&& cube_position : cube_positions) {
-      // set uniforms
-      {
-        shader_program->SetInt("uTexture0", 0);
-        shader_program->SetInt("uTexture1", 1);
-        glm::mat4 model = glm::mat4(1.0f);
-        model = glm::translate(model, cube_position);
-        shader_program->SetMat4("uModel", model);
-        glm::mat4 projection =
-            glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.f);
-        shader_program->SetMat4("uProjection", projection);
-      }
+    glm::mat4 projection =
+        glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.f);
 
-      // draw
-      vpo->DrawContents();
+    {  // draw lighted entity
+      device->UseProgram(lighted_shader_program);
+      lighted_shader_program->SetVec4("u_entity_color",
+                                      glm::vec4(1.0f, 0.5f, 0.31f, 1.0f));
+      lighted_shader_program->SetVec4("u_light_color",
+                                      glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
+      lighted_shader_program->SetMat4(
+          "u_model", glm::translate(glm::mat4(1.0f), glm::vec3(0, 0, 0)));
+      lighted_shader_program->SetMat4("u_view", view);
+      lighted_shader_program->SetMat4("u_projection", projection);
+      device->DrawContents();
+    }
+
+    {  // draw lighting entity
+      device->UseProgram(lighting_shader_program);
+      lighted_shader_program->SetVec4("u_light_color",
+                                      glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
+      lighted_shader_program->SetMat4(
+          "u_model", glm::translate(glm::mat4(1.0f), glm::vec3(5, 5, -10)));
+      lighted_shader_program->SetMat4("u_view", view);
+      lighted_shader_program->SetMat4("u_projection", projection);
+      device->DrawContents();
     }
 
     glfwPollEvents();

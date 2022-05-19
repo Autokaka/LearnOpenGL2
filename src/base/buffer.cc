@@ -15,32 +15,78 @@ Attribute::Attribute(const std::string& name, AttributeType type, int size)
   size_ = static_cast<int>(type);
 }
 
-#pragma mark - VertexBuffer
+#pragma mark - GLVertexBuffer
 
-VertexBuffer::VertexBuffer(const std::vector<float>& data,
-                           const AttributeList& attribute_list)
-    : Buffer(data) {
-  glGenBuffers(1, &id_);
-  SetAttributeList(attribute_list);
+GLVertexBuffer::GLVertexBuffer(const SharedGLObject& vertex_info,
+                               const SharedGLObject& draw_sequence)
+    : vertex_info_(vertex_info), draw_sequence_(draw_sequence) {}
+
+std::optional<uint32_t> GLVertexBuffer::GetVertexInfo() const {
+  if (vertex_info_) {
+    return vertex_info_->GetId();
+  }
+  return std::nullopt;
+}
+std::optional<uint32_t> GLVertexBuffer::GetDrawSequence() const {
+  if (draw_sequence_) {
+    return draw_sequence_->GetId();
+  }
+  return std::nullopt;
 }
 
-VertexBuffer::~VertexBuffer() {
-  glDeleteBuffers(1, &id_);
+#pragma mark - VertexBuffer
+
+VertexBuffer::VertexBuffer(const VertexInfo& vertex_info,
+                           const AttributeList& attribute_list,
+                           const DrawSequence& draw_sequence) {
+  SetVertexInfo(vertex_info);
+  SetAttributeList(attribute_list);
+  SetDrawSequence(draw_sequence);
+}
+
+void VertexBuffer::SetVertexInfo(const VertexInfo& vertex_info) {
+  vertex_info_ = vertex_info;
 }
 
 void VertexBuffer::SetAttributeList(const AttributeList& attribute_list) {
   attribute_list_ = attribute_list;
-  UpdateOneVertexSize();
-}
 
-void VertexBuffer::Submit() const {
-  if (data_.empty()) {
-    return;
+  // Update one_vertex_size_
+  if (attribute_list_.empty()) {
+    one_vertex_size_ = 1;
   }
 
-  const int size_in_bytes = data_.size() * sizeof(float);
-  glBindBuffer(GL_ARRAY_BUFFER, id_);
-  glBufferData(GL_ARRAY_BUFFER, size_in_bytes, data_.data(), GL_STATIC_DRAW);
+  one_vertex_size_ = 0;
+  for (auto&& attribute : attribute_list_) {
+    one_vertex_size_ += attribute.GetSize();
+  }
+}
+
+void VertexBuffer::SetDrawSequence(const DrawSequence& draw_sequence) {
+  draw_sequence_ = draw_sequence;
+}
+
+SharedGLVertexBuffer VertexBuffer::CreateGLObject() const {
+  if (IsEmpty()) {
+    return nullptr;
+  }
+
+  // vao
+  GLuint vao;
+  glGenVertexArrays(1, &vao);
+  glBindVertexArray(vao);
+
+  // vbo
+  const SharedGLObject vbo = ScopedGLObject::Create(
+      []() -> GLuint {
+        GLuint vbo;
+        glGenBuffers(1, &vbo);
+        return vbo;
+      },
+      [](GLuint id) { glDeleteBuffers(1, &id); });
+  const int vbo_size = vertex_info_.size() * sizeof(float);
+  glBindBuffer(GL_ARRAY_BUFFER, vbo->GetId());
+  glBufferData(GL_ARRAY_BUFFER, vbo_size, vertex_info_.data(), GL_STATIC_DRAW);
   int channel = 0, offset = 0;
   for (auto&& attribute : attribute_list_) {
     glVertexAttribPointer(channel, attribute.GetSize(), GL_FLOAT, GL_FALSE,
@@ -51,81 +97,27 @@ void VertexBuffer::Submit() const {
     offset += attribute.GetSize();
   }
   glBindBuffer(GL_ARRAY_BUFFER, 0);
-}
 
-void VertexBuffer::UpdateOneVertexSize() {
-  if (attribute_list_.empty()) {
-    one_vertex_size_ = 1;
-    return;
-  }
-
-  one_vertex_size_ = 0;
-  for (auto&& attribute : attribute_list_) {
-    one_vertex_size_ += attribute.GetSize();
-  }
-}
-
-#pragma mark - IndexBuffer
-
-IndexBuffer::IndexBuffer(const std::vector<uint32_t>& data) : Buffer(data) {
-  glGenBuffers(1, &id_);
-}
-
-IndexBuffer::~IndexBuffer() {
-  glDeleteBuffers(1, &id_);
-}
-
-void IndexBuffer::Submit() const {
-  if (data_.empty()) {
-    return;
-  }
-
-  const int size_in_bytes = data_.size() * sizeof(uint32_t);
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, id_);
-  glBufferData(GL_ELEMENT_ARRAY_BUFFER, size_in_bytes * sizeof(uint32_t),
-               data_.data(), GL_STATIC_DRAW);
-}
-
-#pragma mark - VertexPainter
-
-VertexPainter::VertexPainter(const SharedVertexBuffer& vbo,
-                             const SharedElementBuffer& ebo)
-    : vbo_(vbo), ebo_(ebo) {
-  glGenVertexArrays(1, &id_);
-}
-
-VertexPainter::~VertexPainter() {
-  glDeleteVertexArrays(1, &id_);
-}
-
-void VertexPainter::Submit() const {
-  glBindVertexArray(id_);
-  if (vbo_) {
-    vbo_->Submit();
-  }
-  if (ebo_) {
-    ebo_->Submit();
+  // ebo
+  SharedGLObject ebo = nullptr;
+  if (!draw_sequence_.empty()) {
+    ebo = ScopedGLObject::Create(
+        []() -> GLuint {
+          GLuint ebo;
+          glGenBuffers(1, &ebo);
+          return ebo;
+        },
+        [](GLuint id) { glDeleteBuffers(1, &id); });
+    const int ebo_size = draw_sequence_.size() * sizeof(uint32_t);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo->GetId());
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, ebo_size, draw_sequence_.data(),
+                 GL_STATIC_DRAW);
   }
 
   glBindVertexArray(0);
-  if (ebo_) {
+  if (ebo) {
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
   }
-}
 
-void VertexPainter::DrawContents() const {
-  if (ebo_) {
-    glBindVertexArray(id_);
-    glDrawElements(GL_TRIANGLES, ebo_->GetSize(), GL_UNSIGNED_INT,
-                   reinterpret_cast<void*>(0));
-    glBindVertexArray(0);
-    return;
-  }
-
-  if (vbo_) {
-    glBindVertexArray(id_);
-    glDrawArrays(GL_TRIANGLES, 0, vbo_->GetSize());
-    glBindVertexArray(0);
-    return;
-  }
+  return GLVertexBuffer::Create(vbo, ebo);
 }

@@ -2,11 +2,16 @@
  * Created by Autokaka (qq1909698494@gmail.com) on 2022/05/17.
  */
 
+#pragma once
+
 #include <glad/glad.h>
+#include <cstddef>
 #include <memory>
+#include <optional>
 #include <string>
 #include <vector>
 
+#include "base/scoped_gl_object.h"
 #include "macros.h"
 
 #pragma mark - Attribute
@@ -35,89 +40,63 @@ class Attribute final {
   AttributeType type_;
   int size_;
 };
-using AttributeList = std::vector<Attribute>;
 
-#pragma mark - Buffer
+#pragma mark - GLVertexBuffer
 
-template <typename T = float>
-class Buffer {
+class GLVertexBuffer final
+    : public std::enable_shared_from_this<GLVertexBuffer> {
  public:
-  explicit Buffer(const std::vector<T>& data) : data_(data) {}
-  virtual ~Buffer() = default;
+  MAKE_SHARED_CONSTRUCTOR(GLVertexBuffer, Create);
 
-  virtual int GetSize() const { return data_.size(); }
-  virtual void Submit() const = 0;
+  std::optional<uint32_t> GetVertexInfo() const;
+  std::optional<uint32_t> GetDrawSequence() const;
 
- protected:
-  const std::vector<T> data_;
-  GLuint id_;
+ private:
+  const SharedGLObject vertex_info_;
+  const SharedGLObject draw_sequence_;
 
-  DISALLOW_COPY_ASSIGN_AND_MOVE(Buffer);
+  explicit GLVertexBuffer(const SharedGLObject& vertex_info = nullptr,
+                          const SharedGLObject& draw_sequence = nullptr);
+
+  DISALLOW_COPY_ASSIGN_AND_MOVE(GLVertexBuffer);
 };
+using SharedGLVertexBuffer = std::shared_ptr<GLVertexBuffer>;
 
 #pragma mark - VertexBuffer
 
-class VertexBuffer final : public Buffer<float>,
-                           std::enable_shared_from_this<VertexBuffer> {
+class VertexBuffer final : std::enable_shared_from_this<VertexBuffer> {
  public:
   using SharedVertexBuffer = std::shared_ptr<VertexBuffer>;
+  using VertexInfo = std::vector<float>;
+  using AttributeList = std::vector<Attribute>;
+  using DrawSequence = std::vector<uint32_t>;
 
   MAKE_SHARED_CONSTRUCTOR(VertexBuffer, Create);
-  ~VertexBuffer() override;
 
-  AttributeList GetAttributeList() const { return attribute_list_; }
+  bool IsEmpty() const { return vertex_info_.empty(); }
+
+  const VertexInfo& GetVertexInfo() const { return vertex_info_; }
+  void SetVertexInfo(const VertexInfo& vertex_info);
+  int GetVertexCount() const { return vertex_info_.size() / one_vertex_size_; }
+
+  const AttributeList& GetAttributeList() const { return attribute_list_; }
   void SetAttributeList(const AttributeList& attribute_list);
 
-  int GetSize() const override { return data_.size() / one_vertex_size_; }
+  const DrawSequence& GetDrawSequence() const { return draw_sequence_; }
+  void SetDrawSequence(const DrawSequence& draw_sequence);
 
-  void Submit() const override;
+  SharedGLVertexBuffer CreateGLObject() const;
 
  private:
-  AttributeList attribute_list_;
   int one_vertex_size_;
+  VertexInfo vertex_info_;
+  AttributeList attribute_list_;
+  DrawSequence draw_sequence_;
 
-  explicit VertexBuffer(const std::vector<float>& data,
-                        const AttributeList& attribute_list = {});
+  explicit VertexBuffer(const VertexInfo& vertex_info = {},
+                        const AttributeList& attribute_list = {},
+                        const DrawSequence& draw_sequence = {});
 
-  void UpdateOneVertexSize();
+  DISALLOW_COPY_ASSIGN_AND_MOVE(VertexBuffer);
 };
 using SharedVertexBuffer = VertexBuffer::SharedVertexBuffer;
-
-#pragma mark - IndexBuffer
-
-class IndexBuffer final : public Buffer<uint32_t>,
-                          std::enable_shared_from_this<IndexBuffer> {
- public:
-  using SharedElementBuffer = std::shared_ptr<IndexBuffer>;
-
-  MAKE_SHARED_CONSTRUCTOR(IndexBuffer, Create);
-  ~IndexBuffer() override;
-
-  void Submit() const override;
-
- private:
-  explicit IndexBuffer(const std::vector<uint32_t>& data);
-};
-using SharedElementBuffer = IndexBuffer::SharedElementBuffer;
-
-#pragma mark - VertexPainter
-
-class VertexPainter final : std::enable_shared_from_this<VertexPainter> {
- public:
-  using SharedVertexPainter = std::shared_ptr<VertexPainter>;
-
-  MAKE_SHARED_CONSTRUCTOR(VertexPainter, Create);
-  ~VertexPainter();
-
-  void Submit() const;
-  void DrawContents() const;
-
- private:
-  GLuint id_;
-  const SharedVertexBuffer vbo_;
-  const SharedElementBuffer ebo_;
-
-  explicit VertexPainter(const SharedVertexBuffer& vbo,
-                         const SharedElementBuffer& ebo = nullptr);
-};
-using SharedVertexPainter = VertexPainter::SharedVertexPainter;
