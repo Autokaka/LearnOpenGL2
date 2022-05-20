@@ -13,6 +13,7 @@
 #include "base/camera.h"
 #include "base/device.h"
 #include "base/shader.h"
+#include "glm/fwd.hpp"
 
 namespace {
 
@@ -187,7 +188,7 @@ void main() {
   glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
   glEnable(GL_DEPTH_TEST);
 
-  camera.SetPosition(glm::vec3(0, 0, 1));
+  camera.SetPosition(glm::vec3(2, 2, 3));
   camera.LookAt(glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
 
   // start rendering loop
@@ -217,8 +218,9 @@ void main() {
       device->UseProgram(lighting_shader_program);
       lighted_shader_program->SetVec4("u_light_color",
                                       glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
-      lighted_shader_program->SetMat4(
-          "u_model", glm::translate(glm::mat4(1.0f), glm::vec3(5, 5, -10)));
+      glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(1, 1, -1));
+      model = glm::scale(model, glm::vec3(0.5f));
+      lighted_shader_program->SetMat4("u_model", model);
       lighted_shader_program->SetMat4("u_view", view);
       lighted_shader_program->SetMat4("u_projection", projection);
       device->DrawContents();
