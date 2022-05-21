@@ -4,8 +4,6 @@
 
 #pragma once
 
-#include <glad/glad.h>
-#include <cstddef>
 #include <memory>
 #include <optional>
 #include <string>

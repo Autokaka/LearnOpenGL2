@@ -166,7 +166,7 @@ void main() {
   FragColor = u_entity_color * u_light_color;
 }
 )__SHADER__";
-  const char* light_fsh = R"__SHADER__(
+  const char* lighting_fsh = R"__SHADER__(
 #version 330 core
 
 uniform vec4 u_light_color;
@@ -180,7 +180,7 @@ void main() {
   auto lighted_shader_program =
       Shader::CreateFromSource(common_vsh, lighted_fsh);
   auto lighting_shader_program =
-      Shader::CreateFromSource(common_vsh, light_fsh);
+      Shader::CreateFromSource(common_vsh, lighting_fsh);
   if (!lighted_shader_program || !lighting_shader_program) {
     return -1;
   }
@@ -211,7 +211,7 @@ void main() {
           "u_model", glm::translate(glm::mat4(1.0f), glm::vec3(0, 0, 0)));
       lighted_shader_program->SetMat4("u_view", view);
       lighted_shader_program->SetMat4("u_projection", projection);
-      device->DrawContents();
+      device->DrawContent();
     }
 
     {  // draw lighting entity
@@ -223,7 +223,7 @@ void main() {
       lighted_shader_program->SetMat4("u_model", model);
       lighted_shader_program->SetMat4("u_view", view);
       lighted_shader_program->SetMat4("u_projection", projection);
-      device->DrawContents();
+      device->DrawContent();
     }
 
     glfwPollEvents();

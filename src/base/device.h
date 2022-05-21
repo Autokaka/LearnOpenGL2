@@ -13,7 +13,7 @@ class GPUDevice final {
 
   void UseVertexBuffer(const SharedVertexBuffer& vbo);
   void UseProgram(const SharedShader& shader);
-  void DrawContents();
+  void DrawContent();
 
  private:
   SharedVertexBuffer vbo_;

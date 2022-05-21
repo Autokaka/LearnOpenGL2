@@ -2,6 +2,8 @@
  * Created by Autokaka (qq1909698494@gmail.com) on 2022/05/17.
  */
 
+#include <glad/glad.h>
+
 #include "buffer.h"
 
 #pragma mark - Attribute

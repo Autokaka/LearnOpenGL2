@@ -5,8 +5,8 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 add_subdirectory(${PROJECT_SOURCE_DIR}/vendor/glad)
-add_subdirectory(${PROJECT_SOURCE_DIR}/vendor/glfw)
 add_subdirectory(${PROJECT_SOURCE_DIR}/vendor/glm)
+add_subdirectory(${PROJECT_SOURCE_DIR}/vendor/imgui)
 add_subdirectory(${PROJECT_SOURCE_DIR}/vendor/stb)
 
 function(create_exec TARGET EXEC)
@@ -15,7 +15,8 @@ function(create_exec TARGET EXEC)
   source_group(TREE ${PROJECT_SOURCE_DIR} FILES ${EXEC} ${SRC} ${RES})
 
   add_executable(${TARGET} MACOSX_BUNDLE ${EXEC} ${SRC} ${RES})
-  target_link_libraries(${TARGET} PRIVATE glad glfw glm stb)
+  
+  target_link_libraries(${TARGET} PRIVATE glad glm imgui stb)
   target_include_directories(${TARGET} PRIVATE ${LearnOpenGL_SOURCE_DIR}/src)
   set_target_properties(${TARGET} PROPERTIES 
     MACOSX_BUNDLE_INFO_PLIST "${PROJECT_SOURCE_DIR}/res/Info.plist"
@@ -77,3 +78,4 @@ create_exec(CameraMyOwnLookAt "src/camera/camera_my_own_look_at.cc")
 
 # lighting
 create_exec(LightingColor "src/lighting/lighting_color.cc")
+create_exec(LightingBasicLighting "src/lighting/lighting_basic_lighting.cc")

@@ -29,7 +29,7 @@ void GPUDevice::UseProgram(const SharedShader& shader) {
   }
 }
 
-void GPUDevice::DrawContents() {
+void GPUDevice::DrawContent() {
   if (!vbo_ || !gl_vbo_ || !current_shader_) {
     return;
   }
