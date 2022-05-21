@@ -2,8 +2,10 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 // clang-format on
+#include <imgui/imgui.h>
 #include <algorithm>
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 #include <iostream>
 #include <memory>
 
@@ -143,26 +145,42 @@ void main() {
 uniform vec4 u_entity_color;
 uniform vec4 u_light_color;
 uniform vec3 u_light_position;
+uniform vec3 u_view_position;
+
+uniform float u_ambient;
+uniform float u_diffuse;
+uniform float u_specular;
+uniform float u_shininess;
 
 in vec3 v_position;
 in vec3 v_normal;
 
 out vec4 FragColor;
 
-vec4 GetAmbientLightColor(float ambient) {
-  return ambient * u_light_color;
+vec4 GetAmbientLightColor() {
+  return u_ambient * u_light_color;
 }
 
-vec4 GetDiffuseLightColor(vec3 frag_position, vec3 light_position, vec3 frag_normal) {
-  vec3 light_direction = light_position - frag_position;
-  float diffuse = max(dot(normalize(light_direction), normalize(frag_normal)), 0.0); 
-  return diffuse * u_light_color;
+vec4 GetDiffuseLightColor() {
+  vec3 light_direction = u_light_position - v_position;
+  float diffuse = max(dot(normalize(light_direction), normalize(v_normal)), 0.0); 
+  return u_diffuse * diffuse * u_light_color;
+}
+
+vec4 GetSpecularLightColor() {
+  vec3 light_direction = u_light_position - v_position;
+  vec3 view_direction = normalize(u_view_position - v_position);
+  vec3 reflect_direction = reflect(normalize(-light_direction), normalize(v_normal));
+  float specular = pow(max(dot(view_direction, reflect_direction), 0.0), u_shininess);
+  return u_specular * specular * u_light_color;
 }
 
 void main() {
-  vec4 ambient_color = GetAmbientLightColor(0.2);
-  vec4 diffuse_color = GetDiffuseLightColor(v_position, u_light_position, v_normal);
-  vec4 final_light_color = ambient_color + diffuse_color;
+  vec4 ambient_color = GetAmbientLightColor();
+  vec4 diffuse_color = GetDiffuseLightColor();
+  vec4 specular_color = GetSpecularLightColor();
+
+  vec4 final_light_color = ambient_color + diffuse_color + specular_color;
   FragColor = final_light_color * u_entity_color;
 }
 )__SHADER__";
@@ -183,17 +201,16 @@ void main() {
       Exit(-1);
     }
 
-    glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-    glEnable(GL_DEPTH_TEST);
-
     camera_.SetPosition(glm::vec3(2, 2, 3));
     camera_.LookAt(glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
+
+    glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+    glEnable(GL_DEPTH_TEST);
   }
 
   void DrawContent() override {
     // do actual rendering
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glm::vec3 light_position = glm::vec3(1, 1, -1);
     glm::mat4 view = glm::inverse(camera_.GetTransformation());
     glm::mat4 projection =
         glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.f);
@@ -201,11 +218,15 @@ void main() {
     {  // draw lighted entity
       device_->UseProgram(lighted_shader_);
       {
-        lighted_shader_->SetVec4("u_entity_color",
-                                 glm::vec4(1.0f, 0.5f, 0.31f, 1.0f));
-        lighted_shader_->SetVec4("u_light_color",
-                                 glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
-        lighted_shader_->SetVec3("u_light_position", light_position);
+        lighted_shader_->SetVec4("u_entity_color", entity_color_);
+        lighted_shader_->SetVec4("u_light_color", light_color_);
+        lighted_shader_->SetVec3("u_light_position", light_position_);
+        lighted_shader_->SetVec3("u_view_position", camera_.GetPosition());
+
+        lighted_shader_->SetFloat("u_ambient", ambient_);
+        lighted_shader_->SetFloat("u_diffuse", diffuse_);
+        lighted_shader_->SetFloat("u_specular", specular_);
+        lighted_shader_->SetFloat("u_shininess", shininess_);
       }
       {
         glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(0, 0, 0));
@@ -220,12 +241,9 @@ void main() {
 
     {  // draw lighting entity
       device_->UseProgram(lighting_shader_);
+      { lighting_shader_->SetVec4("u_light_color", light_color_); }
       {
-        lighting_shader_->SetVec4("u_light_color",
-                                  glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
-      }
-      {
-        glm::mat4 model = glm::translate(glm::mat4(1.0f), light_position);
+        glm::mat4 model = glm::translate(glm::mat4(1.0f), light_position_);
         model = glm::scale(model, glm::vec3(0.5f));
         glm::mat4 normal_matrix = glm::transpose(glm::inverse(model));
         lighting_shader_->SetMat4("u_model", model);
@@ -235,6 +253,8 @@ void main() {
       }
       device_->DrawContent();
     }
+
+    DrawUI();
   }
 
  private:
@@ -243,7 +263,30 @@ void main() {
   SharedShader lighted_shader_;
   SharedShader lighting_shader_;
 
+  // ui states
+  glm::vec4 entity_color_ = glm::vec4(1.0f, 0.5f, 0.31f, 1.0f);
+  glm::vec4 light_color_ = glm::vec4(1.0f);
+  glm::vec3 light_position_ = glm::vec3(1, 1, -1);
+
+  float ambient_ = 0.2f;
+  float diffuse_ = 1.0f;
+  float specular_ = 0.5f;
+  float shininess_ = 32.0f;
+
   MyApp() { delegate_ = this; }
+
+  void DrawUI() {
+    ImGui::Begin("Properties");
+    ImGui::ColorEdit4("light_color", glm::value_ptr(light_color_));
+    ImGui::ColorEdit4("entity_color", glm::value_ptr(entity_color_));
+    ImGui::SliderFloat3("light_position", glm::value_ptr(light_position_), -2,
+                        2, "%.1f");
+    ImGui::SliderFloat("ambient", &ambient_, 0.0f, 1.0f);
+    ImGui::SliderFloat("diffuse", &diffuse_, 0.0f, 1.0f);
+    ImGui::SliderFloat("specular", &specular_, 0.0f, 1.0f);
+    ImGui::SliderFloat("shininess", &shininess_, 2.0f, 256.0f);
+    ImGui::End();
+  }
 };
 
 int main() {
