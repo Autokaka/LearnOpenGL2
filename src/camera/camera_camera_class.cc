@@ -263,7 +263,7 @@ void main() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     shader_program->Use();
 
-    glm::mat4 view = glm::inverse(camera.GetTransformation());
+    glm::mat4 view = glm::inverse(camera.GetTransformMatrix());
     shader_program->SetMat4("uView", view);
     for (auto&& cube_position : cube_positions) {
       // set uniforms
