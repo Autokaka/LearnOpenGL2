@@ -38,7 +38,7 @@ class Camera final {
   void YawLeft(float step_degrees);
   void YawRight(float step_degrees);
 
-  glm::mat4 GetTransformation() const;
+  glm::mat4 GetTransformMatrix() const;
 
  private:
   glm::mat4 camera_rotation_;
@@ -52,7 +52,5 @@ class Camera final {
   glm::mat4 GetCameraRotateMatrix() const;
   glm::mat4 GetCameraTransformMatrix() const;
 
-  glm::mat4 GetLocalTranslateMatrix() const;
-  glm::mat4 GetLocalRotateMatrix() const;
   glm::mat4 GetLocalTransformMatrix() const;
 };

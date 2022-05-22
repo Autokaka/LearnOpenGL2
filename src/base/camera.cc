@@ -15,7 +15,7 @@ Camera::Camera(const CameraMode& mode) : mode(mode) {
 #pragma mark - Position
 
 glm::vec3 Camera::GetPosition() const {
-  return GetTransformation() * glm::vec4(0, 0, 0, 1);
+  return GetTransformMatrix() * glm::vec4(0, 0, 0, 1);
 }
 
 void Camera::SetPosition(const glm::vec3& position) {
@@ -101,7 +101,7 @@ void Camera::YawRight(float step_degrees) {
   YawLeft(-step_degrees);
 }
 
-glm::mat4 Camera::GetTransformation() const {
+glm::mat4 Camera::GetTransformMatrix() const {
   return GetCameraTransformMatrix() * GetLocalTransformMatrix();
 }
 
@@ -121,18 +121,18 @@ glm::mat4 Camera::GetCameraTransformMatrix() const {
 
 #pragma mark - LocalTransformationUtil
 
-glm::mat4 Camera::GetLocalTranslateMatrix() const {
-  return glm::translate(glm::mat4(1.0f), local_position_);
-}
-
-glm::mat4 Camera::GetLocalRotateMatrix() const {
-  glm::mat4 local_rotation = glm::rotate(
-      glm::mat4(1.0f), glm::radians(local_yaw_), glm::vec3(0, 1, 0));
-  local_rotation = glm::rotate(local_rotation, glm::radians(local_pitch_),
-                               glm::vec3(1, 0, 0));
-  return local_rotation;
-}
-
 glm::mat4 Camera::GetLocalTransformMatrix() const {
-  return GetLocalRotateMatrix() * GetLocalTranslateMatrix();
+  const glm::mat4 local_rotation_x = glm::rotate(
+      glm::mat4(1.0f), glm::radians(local_pitch_), glm::vec3(1, 0, 0));
+  const glm::mat4 local_rotation_y = glm::rotate(
+      glm::mat4(1.0f), glm::radians(local_yaw_), glm::vec3(0, 1, 0));
+
+  const glm::mat4 local_translation =
+      glm::translate(glm::mat4(1.0f), local_position_);
+
+  if (mode == CameraMode::kFly) {  // Fly mode
+    return (local_rotation_x * local_rotation_y) * local_translation;
+  } else {  // FPS mode
+    return local_rotation_y * (local_translation * local_rotation_x);
+  }
 }
