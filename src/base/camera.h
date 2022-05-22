@@ -44,8 +44,8 @@ class Camera final {
   glm::mat4 camera_rotation_;
   glm::vec3 camera_position_;
 
-  float local_x_rotate_degrees_;
-  float local_y_rotate_degrees_;
+  float local_pitch_;
+  float local_yaw_;
   glm::vec3 local_position_;
 
   glm::mat4 GetCameraTranslateMatrix() const;

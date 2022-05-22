@@ -8,7 +8,7 @@
 #include "camera.h"
 
 Camera::Camera(const CameraMode& mode) : mode(mode) {
-  SetPosition(glm::vec3(0, 0, 0));
+  SetPosition(glm::vec3(0, 0, 3));
   LookAt(glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
 }
 
@@ -53,13 +53,13 @@ void Camera::GoDown(float step) {
 #pragma mark - Rotation
 
 glm::mat4 Camera::GetRotation() const {
-  return GetCameraRotateMatrix() * GetLocalRotateMatrix();
+  return GetCameraRotateMatrix() * GetLocalTransformMatrix();
 }
 
 void Camera::SetRotation(const glm::mat4& rotation) {
   camera_rotation_ = rotation;
-  local_x_rotate_degrees_ = 0;
-  local_y_rotate_degrees_ = 0;
+  local_pitch_ = 0;
+  local_yaw_ = 0;
 }
 
 void Camera::LookAt(const glm::vec3& world_target, const glm::vec3& world_up) {
@@ -78,22 +78,15 @@ void Camera::LookAt(const glm::vec3& world_target, const glm::vec3& world_up) {
 }
 
 void Camera::Yaw(float degrees) {
-  local_y_rotate_degrees_ = -90 - degrees;
-  SetRotation(GetRotation());
+  local_yaw_ = -90 - degrees;
 }
 
 void Camera::Pitch(float degrees) {
-  local_x_rotate_degrees_ = degrees;
-  if (mode == CameraMode::kFly) {
-    SetRotation(GetRotation());
-  }
+  local_pitch_ = degrees;
 }
 
 void Camera::PitchUp(float step_degrees) {
-  local_x_rotate_degrees_ += step_degrees;
-  if (mode == CameraMode::kFly) {
-    SetRotation(GetRotation());
-  }
+  local_pitch_ += step_degrees;
 }
 
 void Camera::PitchDown(float step_degrees) {
@@ -101,8 +94,7 @@ void Camera::PitchDown(float step_degrees) {
 }
 
 void Camera::YawLeft(float step_degrees) {
-  local_y_rotate_degrees_ += step_degrees;
-  SetRotation(GetRotation());
+  local_yaw_ += step_degrees;
 }
 
 void Camera::YawRight(float step_degrees) {
@@ -134,15 +126,13 @@ glm::mat4 Camera::GetLocalTranslateMatrix() const {
 }
 
 glm::mat4 Camera::GetLocalRotateMatrix() const {
-  glm::mat4 local_rotation =
-      glm::rotate(glm::mat4(1.0f), glm::radians(local_y_rotate_degrees_),
-                  glm::vec3(0, 1, 0));
-  local_rotation =
-      glm::rotate(local_rotation, glm::radians(local_x_rotate_degrees_),
-                  glm::vec3(1, 0, 0));
+  glm::mat4 local_rotation = glm::rotate(
+      glm::mat4(1.0f), glm::radians(local_yaw_), glm::vec3(0, 1, 0));
+  local_rotation = glm::rotate(local_rotation, glm::radians(local_pitch_),
+                               glm::vec3(1, 0, 0));
   return local_rotation;
 }
 
 glm::mat4 Camera::GetLocalTransformMatrix() const {
-  return GetLocalTranslateMatrix() * GetLocalRotateMatrix();
+  return GetLocalRotateMatrix() * GetLocalTranslateMatrix();
 }

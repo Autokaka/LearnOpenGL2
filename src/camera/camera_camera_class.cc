@@ -252,7 +252,7 @@ void main() {
       glm::vec3(1.5f, 0.2f, -1.5f),   glm::vec3(-1.3f, 1.0f, -1.5f),
   };
 
-  camera.SetPosition(glm::vec3(0, 0, 1));
+  camera.SetPosition(glm::vec3(0, 0, 3));
   camera.LookAt(glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
 
   // start rendering loop
