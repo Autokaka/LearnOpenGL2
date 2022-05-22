@@ -81,5 +81,3 @@ create_exec(LightingColor "src/lighting/lighting_color.cc")
 create_exec(LightingBasicLighting "src/lighting/lighting_basic_lighting.cc")
 create_exec(LightingPhongInViewSpace "src/lighting/lighting_phong_in_view_space.cc")
 create_exec(LightingGouraud "src/lighting/lighting_gouraud.cc")
-
-create_exec(Test "src/learnopengl/test.cc")
