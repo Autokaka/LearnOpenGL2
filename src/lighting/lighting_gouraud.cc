@@ -200,10 +200,7 @@ void main() {
       Exit(-1);
     }
 
-    camera_.SetPosition(glm::vec3(-1, 0, 3));
-    camera_.LookAt(glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
-
-    glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+    glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
     glEnable(GL_DEPTH_TEST);
   }
 
@@ -243,7 +240,7 @@ void main() {
       { lighting_shader_->SetVec4("u_light_color", light_color_); }
       {
         glm::mat4 model = glm::translate(glm::mat4(1.0f), light_position_);
-        model = glm::scale(model, glm::vec3(0.1f));
+        model = glm::scale(model, glm::vec3(0.2f));
         glm::mat4 normal_matrix = glm::transpose(glm::inverse(model));
         lighting_shader_->SetMat4("u_model", model);
         lighting_shader_->SetMat4("u_view", view);
@@ -265,11 +262,11 @@ void main() {
   // ui states
   glm::vec4 entity_color_ = glm::vec4(1.0f, 0.5f, 0.31f, 1.0f);
   glm::vec4 light_color_ = glm::vec4(1.0f);
-  glm::vec3 light_position_ = glm::vec3(1, 1, -1);
+  glm::vec3 light_position_ = glm::vec3(1.2f, 1.0f, 2.0f);
 
-  float ambient_ = 0.2f;
+  float ambient_ = 0.1f;
   float diffuse_ = 1.0f;
-  float specular_ = 0.5f;
+  float specular_ = 1.0f;
   float shininess_ = 32.0f;
 
   MyApp() { delegate_ = this; }
