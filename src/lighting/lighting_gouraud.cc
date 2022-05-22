@@ -207,7 +207,7 @@ void main() {
   void DrawContent() override {
     // do actual rendering
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glm::mat4 view = glm::inverse(camera_.GetTransformation());
+    glm::mat4 view = glm::inverse(camera_.GetTransformMatrix());
     glm::mat4 projection =
         glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.f);
 
