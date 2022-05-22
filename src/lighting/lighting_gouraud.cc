@@ -129,20 +129,6 @@ uniform mat4 u_view;
 uniform mat4 u_projection;
 uniform mat4 u_normal_matrix;
 
-// NOTE(Autokaka): Output data should all based on world space here.
-out vec3 v_position;
-out vec3 v_normal;
-
-void main() {
-  gl_Position = u_projection * u_view * u_model * vec4(a_position, 1.0);
-  v_position = vec3(u_model * vec4(a_position, 1.0));
-  v_normal = mat3(u_normal_matrix) * a_normal;
-}
-)__SHADER__";
-    const char* lighted_fsh = R"__SHADER__(
-#version 330 core
-
-uniform vec4 u_entity_color;
 uniform vec4 u_light_color;
 uniform vec3 u_light_position;
 uniform vec3 u_view_position;
@@ -152,36 +138,49 @@ uniform float u_diffuse;
 uniform float u_specular;
 uniform float u_shininess;
 
-in vec3 v_position;
-in vec3 v_normal;
-
-out vec4 FragColor;
+out vec4 v_light_color;
 
 vec4 GetAmbientLightColor() {
   return u_ambient * u_light_color;
 }
 
-vec4 GetDiffuseLightColor() {
+vec4 GetDiffuseLightColor(vec3 v_position, vec3 v_normal) {
   vec3 light_direction = u_light_position - v_position;
   float diffuse = max(dot(normalize(light_direction), normalize(v_normal)), 0.0); 
   return u_diffuse * diffuse * u_light_color;
 }
 
-vec4 GetSpecularLightColor() {
-  vec3 light_direction = u_light_position - v_position;
+vec4 GetSpecularLightColor(vec3 v_position, vec3 v_normal) {
+  vec3 light_direction = normalize(u_light_position - v_position);
   vec3 view_direction = normalize(u_view_position - v_position);
-  vec3 reflect_direction = reflect(normalize(-light_direction), normalize(v_normal));
+  vec3 reflect_direction = reflect(-light_direction, normalize(v_normal));
   float specular = pow(max(dot(view_direction, reflect_direction), 0.0), u_shininess);
   return u_specular * specular * u_light_color;
 }
 
 void main() {
-  vec4 ambient_color = GetAmbientLightColor();
-  vec4 diffuse_color = GetDiffuseLightColor();
-  vec4 specular_color = GetSpecularLightColor();
+  vec3 v_position = vec3(u_model * vec4(a_position, 1.0));
+  vec3 v_normal = mat3(u_normal_matrix) * a_normal;
 
-  vec4 final_light_color = ambient_color + diffuse_color + specular_color;
-  FragColor = final_light_color * u_entity_color;
+  vec4 ambient_color = GetAmbientLightColor();
+  vec4 diffuse_color = GetDiffuseLightColor(v_position, v_normal);
+  vec4 specular_color = GetSpecularLightColor(v_position, v_normal);
+
+  v_light_color = ambient_color + diffuse_color + specular_color;
+  gl_Position = u_projection * u_view * u_model * vec4(a_position, 1.0);
+}
+)__SHADER__";
+    const char* lighted_fsh = R"__SHADER__(
+#version 330 core
+
+uniform vec4 u_entity_color;
+
+in vec4 v_light_color;
+
+out vec4 FragColor;
+
+void main() {
+  FragColor = v_light_color * u_entity_color;
 }
 )__SHADER__";
     const char* lighting_fsh = R"__SHADER__(

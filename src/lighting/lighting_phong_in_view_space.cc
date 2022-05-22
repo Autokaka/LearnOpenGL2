@@ -129,19 +129,20 @@ uniform mat4 u_view;
 uniform mat4 u_projection;
 uniform mat4 u_normal_matrix;
 
-// NOTE(Autokaka): Output data should all based on world space here.
+// NOTE(Autokaka): Output data should all based on view space.
 out vec3 v_position;
 out vec3 v_normal;
 
 void main() {
   gl_Position = u_projection * u_view * u_model * vec4(a_position, 1.0);
-  v_position = vec3(u_model * vec4(a_position, 1.0));
-  v_normal = mat3(u_normal_matrix) * a_normal;
+  v_position = vec3(u_view * u_model * vec4(a_position, 1.0));
+  v_normal = vec3(u_view * u_normal_matrix * vec4(a_normal, 0.0));
 }
 )__SHADER__";
     const char* lighted_fsh = R"__SHADER__(
 #version 330 core
 
+// NOTE(Autokaka): Uniform data should all based on view space.
 uniform vec4 u_entity_color;
 uniform vec4 u_light_color;
 uniform vec3 u_light_position;
@@ -152,6 +153,7 @@ uniform float u_diffuse;
 uniform float u_specular;
 uniform float u_shininess;
 
+// NOTE(Autokaka): Input data should all based on view space.
 in vec3 v_position;
 in vec3 v_normal;
 
@@ -201,7 +203,7 @@ void main() {
       Exit(-1);
     }
 
-    camera_.SetPosition(glm::vec3(-1, 0, 3));
+    camera_.SetPosition(glm::vec3(2, 2, 3));
     camera_.LookAt(glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
 
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
@@ -220,8 +222,9 @@ void main() {
       {
         lighted_shader_->SetVec4("u_entity_color", entity_color_);
         lighted_shader_->SetVec4("u_light_color", light_color_);
-        lighted_shader_->SetVec3("u_light_position", light_position_);
-        lighted_shader_->SetVec3("u_view_position", camera_.GetPosition());
+        lighted_shader_->SetVec3("u_light_position",
+                                 view * glm::vec4(light_position_, 1));
+        lighted_shader_->SetVec3("u_view_position", glm::vec3(0, 0, 0));
 
         lighted_shader_->SetFloat("u_ambient", ambient_);
         lighted_shader_->SetFloat("u_diffuse", diffuse_);

@@ -79,3 +79,5 @@ create_exec(CameraMyOwnLookAt "src/camera/camera_my_own_look_at.cc")
 # lighting
 create_exec(LightingColor "src/lighting/lighting_color.cc")
 create_exec(LightingBasicLighting "src/lighting/lighting_basic_lighting.cc")
+create_exec(LightingPhongInViewSpace "src/lighting/lighting_phong_in_view_space.cc")
+create_exec(LightingGouraud "src/lighting/lighting_gouraud.cc")

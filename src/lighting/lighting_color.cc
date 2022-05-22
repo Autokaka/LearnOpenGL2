@@ -219,7 +219,7 @@ void main() {
       lighted_shader_program->SetVec4("u_light_color",
                                       glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
       glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(1, 1, -1));
-      model = glm::scale(model, glm::vec3(0.5f));
+      model = glm::scale(model, glm::vec3(0.1f));
       lighted_shader_program->SetMat4("u_model", model);
       lighted_shader_program->SetMat4("u_view", view);
       lighted_shader_program->SetMat4("u_projection", projection);
