@@ -6,6 +6,7 @@
 #include <iostream>
 
 #include "camera.h"
+#include "glm/matrix.hpp"
 
 Camera::Camera(const CameraMode& mode) : mode(mode) {
   SetPosition(glm::vec3(0, 0, 3));
@@ -103,6 +104,10 @@ void Camera::YawRight(float step_degrees) {
 
 glm::mat4 Camera::GetTransformMatrix() const {
   return GetCameraTransformMatrix() * GetLocalTransformMatrix();
+}
+
+glm::mat4 Camera::GetViewMatrix() const {
+  return glm::inverse(GetTransformMatrix());
 }
 
 #pragma mark - CameraTrasformationUtil

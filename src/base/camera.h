@@ -39,6 +39,7 @@ class Camera final {
   void YawRight(float step_degrees);
 
   glm::mat4 GetTransformMatrix() const;
+  glm::mat4 GetViewMatrix() const;
 
  private:
   glm::mat4 camera_rotation_;
