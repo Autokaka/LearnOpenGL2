@@ -58,6 +58,4 @@ void GPUDevice::DrawContent() {
     glBindVertexArray(0);
     return;
   }
-
-  glBindTexture(GL_TEXTURE_2D, 0);
 }

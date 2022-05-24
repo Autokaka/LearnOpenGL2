@@ -13,7 +13,7 @@
 #include "base/camera.h"
 #include "base/device.h"
 #include "base/shader.h"
-#include "lighting_diffuse_maps_shaders.h"
+#include "lighting_specular_maps_shaders.h"
 
 class MyApp final : public App, AppDelegate {
  public:
@@ -77,6 +77,7 @@ class MyApp final : public App, AppDelegate {
 
     // create texture
     material_.diffuse = Texture::CreateFromFile("container2.png");
+    material_.specular = Texture::CreateFromFile("fancy_specular_map.png");
 
     // create shader program
     lighted_shader_ =
@@ -114,7 +115,8 @@ class MyApp final : public App, AppDelegate {
         lighted_shader_->SetVec4("u_light.specular", light_.specular);
 
         lighted_shader_->SetSampler2D("u_material.diffuse", material_.diffuse);
-        lighted_shader_->SetVec4("u_material.specular", material_.specular);
+        lighted_shader_->SetSampler2D("u_material.specular",
+                                      material_.specular);
         lighted_shader_->SetFloat("u_material.shininess", material_.shininess);
       }
       {
@@ -165,7 +167,7 @@ class MyApp final : public App, AppDelegate {
   class PhongMaterial {
    public:
     SharedTexture diffuse;
-    glm::vec4 specular{0.5f, 0.5f, 0.5f, 1.0f};
+    SharedTexture specular;
     float shininess = 32.0f;
   } material_;
 
@@ -180,7 +182,6 @@ class MyApp final : public App, AppDelegate {
     ImGui::ColorEdit4("light.diffuse", glm::value_ptr(light_.diffuse));
     ImGui::ColorEdit4("light.specular", glm::value_ptr(light_.specular));
 
-    ImGui::ColorEdit4("material.specular", glm::value_ptr(material_.specular));
     ImGui::SliderFloat("material.shininess", &material_.shininess, 2.0f,
                        256.0f);
 
