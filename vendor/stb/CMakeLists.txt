@@ -1,6 +1,6 @@
 project(stb)
 
-file(GLOB_RECURSE SRC "*" "**/*")
+file(GLOB_RECURSE SRC "*.h" "**/*.h" "*.cc" "**/*.cc")
 
-add_library(stb INTERFACE ${SRC})
-target_include_directories(stb INTERFACE include)
+add_library(stb STATIC ${SRC})
+target_include_directories(stb PUBLIC include)
