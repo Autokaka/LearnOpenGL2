@@ -35,6 +35,11 @@ class Texture : public GPUAccess<SharedGLObject>,
     kLinear = GL_LINEAR,
   };
 
+  enum class Format : GLenum {
+    kRGB = GL_RGB,
+    kRGBA = GL_RGBA,
+  };
+
   using SharedTexture = std::shared_ptr<Texture>;
 
   static SharedTexture CreateFromFile(const std::string_view& file_path);
@@ -51,6 +56,7 @@ class Texture : public GPUAccess<SharedGLObject>,
   int GetWidth() const { return width_; }
   int GetHeight() const { return height_; }
   int GetUnit() const { return unit_; }
+  Format GetFormat() const { return format_; }
 
   SharedGLObject CreateGLObject() override;
 
@@ -59,6 +65,7 @@ class Texture : public GPUAccess<SharedGLObject>,
   static std::once_flag available_units_initilized_;
   int unit_;
 
+  Format format_;
   int width_;
   int height_;
   WrapMode s_wrap_mode_;

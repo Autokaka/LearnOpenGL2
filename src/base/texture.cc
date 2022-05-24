@@ -11,15 +11,27 @@ std::list<int> Texture::available_units_{};
 std::once_flag Texture::available_units_initilized_;
 
 SharedTexture Texture::CreateFromFile(const std::string_view& file_path) {
-  int nr_channels;
+  stbi_set_flip_vertically_on_load(true);
+
+  int nr_components;
   int width = 0, height = 0;
   unsigned char* data =
-      stbi_load(file_path.data(), &width, &height, &nr_channels, 0);
+      stbi_load(file_path.data(), &width, &height, &nr_components, 0);
   if (data) {
     const auto instance = SharedTexture(new Texture());
     instance->data_ = data;
     instance->width_ = width;
     instance->height_ = height;
+    switch (nr_components) {
+      case 3:
+        instance->format_ = Format::kRGB;
+        break;
+      case 4:
+        instance->format_ = Format::kRGBA;
+        break;
+      default:
+        return nullptr;
+    }
     return instance;
   }
   return nullptr;
@@ -110,9 +122,10 @@ SharedGLObject Texture::CreateGLObject() {
   SetMinFilter(min_filter_);
   SetMagFilter(mag_filter_);
   SubmitCommands(gl_texture);
-  glTexImage2D(/** define texture format in gl */ GL_TEXTURE_2D, 0, GL_RGB,
-               GetWidth(), GetHeight(), 0,
-               /** define raw image format */ GL_RGB, GL_UNSIGNED_BYTE, data_);
+  glTexImage2D(/** define texture format in gl */ GL_TEXTURE_2D, 0,
+               static_cast<GLenum>(format_), GetWidth(), GetHeight(), 0,
+               /** define raw image format */ static_cast<GLenum>(format_),
+               GL_UNSIGNED_BYTE, data_);
   glGenerateMipmap(GL_TEXTURE_2D);
   glBindTexture(GL_TEXTURE_2D, 0);
 

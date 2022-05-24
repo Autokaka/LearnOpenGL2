@@ -131,11 +131,12 @@ void Shader::SetMat4(const std::string& name, glm::mat4 value) const {
 
 void Shader::SetSampler2D(const std::string& name,
                           const SharedTexture& texture) {
-  if (const auto& gl_texture = textures_[texture]) {
-    texture->SubmitCommands(gl_texture);
-  } else {
+  const auto& gl_texture = textures_[texture];
+  if (!gl_texture) {
     textures_[texture] = texture->CreateGLObject();
   }
+  glBindTexture(GL_TEXTURE_2D, gl_texture->GetId());
+  texture->SubmitCommands(gl_texture);
   SetInt(name, texture->GetUnit());
 }
 
