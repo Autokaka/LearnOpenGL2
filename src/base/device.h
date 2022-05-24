@@ -4,8 +4,12 @@
 
 #pragma once
 
+#include <unordered_map>
+#include <vector>
+
 #include "buffer.h"
 #include "shader.h"
+#include "texture.h"
 
 class GPUDevice final {
  public:
@@ -16,8 +20,9 @@ class GPUDevice final {
   void DrawContent();
 
  private:
-  SharedVertexBuffer vbo_;
-  SharedGLVertexBuffer gl_vbo_;
+  std::unordered_map<SharedVertexBuffer, SharedGLVertexBuffer> vbos_;
+  SharedVertexBuffer current_vbo_;
+  SharedGLVertexBuffer current_gl_vbo_;
   SharedShader current_shader_;
 
   GPUDevice();

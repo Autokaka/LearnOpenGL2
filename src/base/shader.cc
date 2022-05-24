@@ -129,6 +129,16 @@ void Shader::SetMat4(const std::string& name, glm::mat4 value) const {
                      glm::value_ptr(value));
 }
 
+void Shader::SetSampler2D(const std::string& name,
+                          const SharedTexture& texture) {
+  if (const auto& gl_texture = textures_[texture]) {
+    texture->SubmitCommands(gl_texture);
+  } else {
+    textures_[texture] = texture->CreateGLObject();
+  }
+  SetInt(name, texture->GetUnit());
+}
+
 SharedGLObject Shader::CompileShaderFromSource(const char* source,
                                                const ShaderType& shader_type) {
   if (!source) {

@@ -8,9 +8,11 @@
 #include <glm/glm.hpp>
 #include <memory>
 #include <string>
+#include <unordered_map>
 
-#include "base/scoped_gl_object.h"
 #include "macros.h"
+#include "scoped_gl_object.h"
+#include "texture.h"
 
 enum class ShaderType {
   kVertex = GL_VERTEX_SHADER,
@@ -42,8 +44,11 @@ class Shader final : public std::enable_shared_from_this<Shader> {
   void SetMat3(const std::string& name, glm::mat3 value) const;
   void SetMat4(const std::string& name, glm::mat4 value) const;
 
+  void SetSampler2D(const std::string& name, const SharedTexture& texture);
+
  private:
   GLuint id_;
+  std::unordered_map<SharedTexture, SharedGLObject> textures_;
 
   MAKE_SHARED_CONSTRUCTOR(Shader, Create);
   explicit Shader(uint32_t id);

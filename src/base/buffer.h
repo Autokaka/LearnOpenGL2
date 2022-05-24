@@ -6,11 +6,13 @@
 
 #include <memory>
 #include <optional>
+#include <queue>
 #include <string>
 #include <vector>
 
-#include "base/scoped_gl_object.h"
+#include "gpu_access.h"
 #include "macros.h"
+#include "scoped_gl_object.h"
 
 #pragma mark - Attribute
 
@@ -41,19 +43,22 @@ class Attribute final {
 
 #pragma mark - GLVertexBuffer
 
-class GLVertexBuffer final
-    : public std::enable_shared_from_this<GLVertexBuffer> {
+class GLVertexBuffer final : std::enable_shared_from_this<GLVertexBuffer> {
  public:
   MAKE_SHARED_CONSTRUCTOR(GLVertexBuffer, Create);
+  ~GLVertexBuffer();
 
+  uint32_t GetId() const { return id_; }
   std::optional<uint32_t> GetVertexInfo() const;
   std::optional<uint32_t> GetDrawSequence() const;
 
  private:
+  uint32_t id_;
   const SharedGLObject vertex_info_;
   const SharedGLObject draw_sequence_;
 
-  explicit GLVertexBuffer(const SharedGLObject& vertex_info = nullptr,
+  explicit GLVertexBuffer(uint32_t id,
+                          const SharedGLObject& vertex_info = nullptr,
                           const SharedGLObject& draw_sequence = nullptr);
 
   DISALLOW_COPY_ASSIGN_AND_MOVE(GLVertexBuffer);
@@ -62,7 +67,8 @@ using SharedGLVertexBuffer = std::shared_ptr<GLVertexBuffer>;
 
 #pragma mark - VertexBuffer
 
-class VertexBuffer final : std::enable_shared_from_this<VertexBuffer> {
+class VertexBuffer final : public GPUAccess<SharedGLVertexBuffer>,
+                           std::enable_shared_from_this<VertexBuffer> {
  public:
   using SharedVertexBuffer = std::shared_ptr<VertexBuffer>;
   using VertexInfo = std::vector<float>;
@@ -83,7 +89,7 @@ class VertexBuffer final : std::enable_shared_from_this<VertexBuffer> {
   const DrawSequence& GetDrawSequence() const { return draw_sequence_; }
   void SetDrawSequence(const DrawSequence& draw_sequence);
 
-  SharedGLVertexBuffer CreateGLObject() const;
+  SharedGLVertexBuffer CreateGLObject() override;
 
  private:
   int one_vertex_size_;

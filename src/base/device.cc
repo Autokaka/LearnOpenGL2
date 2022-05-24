@@ -5,50 +5,56 @@
 #include "device.h"
 
 GPUDevice::GPUDevice()
-    : vbo_(nullptr), gl_vbo_(nullptr), current_shader_(nullptr) {}
+    : vbos_({}),
+      current_vbo_(nullptr),
+      current_gl_vbo_(nullptr),
+      current_shader_(nullptr) {}
 
 void GPUDevice::UseVertexBuffer(const SharedVertexBuffer& vbo) {
-  if (vbo_ == vbo) {
+  if (!vbo) {
+    current_vbo_ = nullptr;
+    current_gl_vbo_ = nullptr;
     return;
   }
 
-  vbo_ = vbo;
-  if (vbo_) {
-    gl_vbo_ = vbo_->CreateGLObject();
+  current_vbo_ = vbo;
+  if (auto gl_vbo = vbos_[vbo]) {
+    current_gl_vbo_ = gl_vbo;
+  } else {
+    current_gl_vbo_ = current_vbo_->CreateGLObject();
+  };
+
+  if (current_gl_vbo_) {
+    current_vbo_->SubmitCommands(current_gl_vbo_);
   }
 }
 
 void GPUDevice::UseProgram(const SharedShader& shader) {
-  if (current_shader_ == shader) {
-    return;
-  }
-
   current_shader_ = shader;
+
   if (current_shader_) {
     current_shader_->Use();
   }
 }
 
 void GPUDevice::DrawContent() {
-  if (!vbo_ || !gl_vbo_ || !current_shader_) {
+  if (!current_gl_vbo_) {
     return;
   }
 
-  UseProgram(current_shader_);
-
-  // If ebo exists, call glDrawElements
-  if (auto gl_ebo_id = gl_vbo_->GetDrawSequence()) {
-    glBindVertexArray(gl_ebo_id.value());
-    glDrawElements(GL_TRIANGLES, vbo_->GetDrawSequence().size(),
+  if (auto gl_ebo_id = current_gl_vbo_->GetDrawSequence()) {
+    // If ebo exists, call glDrawElements
+    glBindVertexArray(current_gl_vbo_->GetId());
+    glDrawElements(GL_TRIANGLES, current_vbo_->GetDrawSequence().size(),
                    GL_UNSIGNED_INT, reinterpret_cast<void*>(0));
     glBindVertexArray(0);
     return;
   }
 
-  // If vbo exists, call glDrawArrays
-  if (auto gl_vbo_id = gl_vbo_->GetVertexInfo()) {
-    glBindVertexArray(gl_vbo_id.value());
-    glDrawArrays(GL_TRIANGLES, 0, vbo_->GetVertexCount());
+  if (auto gl_vbo_id = current_gl_vbo_->GetVertexInfo()) {
+    // If vbo exists, call glDrawArrays
+    glBindVertexArray(current_gl_vbo_->GetId());
+    glDrawArrays(GL_TRIANGLES, 0, current_vbo_->GetVertexCount());
     glBindVertexArray(0);
     return;
   }

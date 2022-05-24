@@ -19,9 +19,14 @@ Attribute::Attribute(const std::string& name, AttributeType type, int size)
 
 #pragma mark - GLVertexBuffer
 
-GLVertexBuffer::GLVertexBuffer(const SharedGLObject& vertex_info,
+GLVertexBuffer::GLVertexBuffer(uint32_t id,
+                               const SharedGLObject& vertex_info,
                                const SharedGLObject& draw_sequence)
-    : vertex_info_(vertex_info), draw_sequence_(draw_sequence) {}
+    : id_(id), vertex_info_(vertex_info), draw_sequence_(draw_sequence) {}
+
+GLVertexBuffer::~GLVertexBuffer() {
+  glDeleteVertexArrays(1, &id_);
+}
 
 std::optional<uint32_t> GLVertexBuffer::GetVertexInfo() const {
   if (vertex_info_) {
@@ -68,7 +73,7 @@ void VertexBuffer::SetDrawSequence(const DrawSequence& draw_sequence) {
   draw_sequence_ = draw_sequence;
 }
 
-SharedGLVertexBuffer VertexBuffer::CreateGLObject() const {
+SharedGLVertexBuffer VertexBuffer::CreateGLObject() {
   if (IsEmpty()) {
     return nullptr;
   }
@@ -121,5 +126,5 @@ SharedGLVertexBuffer VertexBuffer::CreateGLObject() const {
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
   }
 
-  return GLVertexBuffer::Create(vbo, ebo);
+  return GLVertexBuffer::Create(vao, vbo, ebo);
 }
