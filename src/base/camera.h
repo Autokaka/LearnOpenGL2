@@ -42,16 +42,11 @@ class Camera final {
   glm::mat4 GetViewMatrix() const;
 
  private:
-  glm::mat4 camera_rotation_;
+  glm::vec3 camera_x_;
+  glm::vec3 camera_y_;
+  glm::vec3 camera_z_;
   glm::vec3 camera_position_;
 
   float local_pitch_;
   float local_yaw_;
-  glm::vec3 local_position_;
-
-  glm::mat4 GetCameraTranslateMatrix() const;
-  glm::mat4 GetCameraRotateMatrix() const;
-  glm::mat4 GetCameraTransformMatrix() const;
-
-  glm::mat4 GetLocalTransformMatrix() const;
 };
