@@ -90,3 +90,4 @@ create_exec(LightingInverseSpecularMaps "src/lighting/lighting_maps/lighting_inv
 create_exec(LightingFancySpecularMaps "src/lighting/lighting_maps/lighting_fancy_specular_maps.cc")
 create_exec(LightingEmissionMaps "src/lighting/lighting_maps/lighting_emission_maps.cc")
 create_exec(LightingDirectionalLight "src/lighting/light_casters/lighting_directional_light.cc")
+create_exec(LightingPointLight "src/lighting/light_casters/lighting_point_light.cc")
