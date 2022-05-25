@@ -6,6 +6,8 @@
 
 #include <glm/glm.hpp>
 
+// TODO(Autokaka): Bring back Camera FPS mode.
+
 enum class CameraMode {
   kFPS,
   kFly,
