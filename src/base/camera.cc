@@ -6,7 +6,6 @@
 #include <iostream>
 
 #include "camera.h"
-#include "glm/matrix.hpp"
 
 Camera::Camera(const CameraMode& mode) : mode(mode) {
   SetPosition(glm::vec3(0, 0, 3));
