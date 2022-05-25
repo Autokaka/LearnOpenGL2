@@ -6,6 +6,7 @@
 #include <iostream>
 
 #include "camera.h"
+#include "glm/matrix.hpp"
 
 Camera::Camera(const CameraMode& mode) : mode(mode) {
   SetPosition(glm::vec3(0, 0, 3));
@@ -23,8 +24,8 @@ void Camera::SetPosition(const glm::vec3& position) {
 }
 
 void Camera::GoForward(float step) {
-  const auto camera_z = glm::vec3(GetRotation()[2]);
-  camera_position_ -= camera_z * step;
+  SetRotation(GetRotation());
+  camera_position_ -= camera_z_ * step;
 }
 
 void Camera::GoBackward(float step) {
@@ -32,8 +33,8 @@ void Camera::GoBackward(float step) {
 }
 
 void Camera::GoLeft(float step) {
-  const auto camera_x = glm::vec3(GetRotation()[0]);
-  camera_position_ -= camera_x * step;
+  SetRotation(GetRotation());
+  camera_position_ -= camera_x_ * step;
 }
 
 void Camera::GoRight(float step) {
@@ -41,8 +42,8 @@ void Camera::GoRight(float step) {
 }
 
 void Camera::GoUp(float step) {
-  const auto camera_y = glm::vec3(GetRotation()[1]);
-  camera_position_ += camera_y * step;
+  SetRotation(GetRotation());
+  camera_position_ += camera_y_ * step;
 }
 
 void Camera::GoDown(float step) {
@@ -55,14 +56,14 @@ glm::mat4 Camera::GetRotation() const {
   const auto local_rotation_x =
       glm::rotate(glm::mat4(1.0f), glm::radians(local_pitch_), {1, 0, 0});
   const auto local_rotation_y =
-      glm::rotate(glm::mat4(1.0f), glm::radians(local_yaw_), camera_y_);
+      glm::rotate(glm::mat4(1.0f), glm::radians(local_yaw_), {0, 1, 0});
   // clang-format off
-  return local_rotation_y * glm::mat4 {
+  return glm::mat4 {
     camera_x_[0], camera_x_[1], camera_x_[2], 0,
     camera_y_[0], camera_y_[1], camera_y_[2], 0,
     camera_z_[0], camera_z_[1], camera_z_[2], 0,
                0,            0,            0, 1,
-  } * local_rotation_x;
+  } * local_rotation_x * local_rotation_y;
   // clang-format on
 }
 
@@ -111,5 +112,6 @@ glm::mat4 Camera::GetTransformMatrix() const {
 }
 
 glm::mat4 Camera::GetViewMatrix() const {
-  return glm::inverse(GetTransformMatrix());
+  return glm::transpose(GetRotation()) *
+         glm::translate(glm::mat4(1.0f), -GetPosition());
 }
