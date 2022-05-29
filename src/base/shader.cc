@@ -5,27 +5,22 @@
 
 #include "shader.h"
 
-SharedShader Shader::CreateFromSource(
-    const std::string& vertex_shader_source,
-    const std::string& fragment_shader_source) {
+SharedShader Shader::CreateFromSource(const std::string& vertex_shader_source,
+                                      const std::string& fragment_shader_source) {
   // create shaders
   SharedGLObject vertex_shader, fragment_shader;
 
   try {
-    vertex_shader = CompileShaderFromSource(vertex_shader_source.c_str(),
-                                            ShaderType::kVertex);
+    vertex_shader = CompileShaderFromSource(vertex_shader_source.c_str(), ShaderType::kVertex);
   } catch (const std::string& e) {
-    std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED: " << e
-              << std::endl;
+    std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED: " << e << std::endl;
     return nullptr;
   }
 
   try {
-    fragment_shader = CompileShaderFromSource(fragment_shader_source.c_str(),
-                                              ShaderType::kFragment);
+    fragment_shader = CompileShaderFromSource(fragment_shader_source.c_str(), ShaderType::kFragment);
   } catch (const std::string& e) {
-    std::cout << "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED: " << e
-              << std::endl;
+    std::cout << "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED: " << e << std::endl;
     return nullptr;
   }
 
@@ -40,22 +35,19 @@ SharedShader Shader::CreateFromSource(
   glGetProgramiv(program_id, GL_LINK_STATUS, &success);
   if (!success) {
     glGetProgramInfoLog(program_id, 512, nullptr, exception);
-    std::cout << "ERROR::SHADER::PROGRAM::LINKING_FAILED: " << exception
-              << std::endl;
+    std::cout << "ERROR::SHADER::PROGRAM::LINKING_FAILED: " << exception << std::endl;
     return nullptr;
   }
 
   return std::shared_ptr<Shader>(new Shader(program_id));
 }
 
-SharedShader Shader::CreateFromFile(const std::string& vertex_shader_path,
-                                    const std::string& fragment_shader_path) {
+SharedShader Shader::CreateFromFile(const std::string& vertex_shader_path, const std::string& fragment_shader_path) {
   // load shaders from file
   std::ifstream vertex_shader_file;
   std::ifstream fragment_shader_file;
   vertex_shader_file.exceptions(std::ifstream::failbit | std::ifstream::badbit);
-  fragment_shader_file.exceptions(std::ifstream::failbit |
-                                  std::ifstream::badbit);
+  fragment_shader_file.exceptions(std::ifstream::failbit | std::ifstream::badbit);
 
   std::string vertex_shader_code;
   std::string fragment_shader_code;
@@ -71,8 +63,7 @@ SharedShader Shader::CreateFromFile(const std::string& vertex_shader_path,
     vertex_shader_code = vertex_shader_stream.str();
     fragment_shader_code = fragment_shader_stream.str();
   } catch (std::ifstream::failure e) {
-    std::cout << "ERROR::SHADER::FAILED_TO_READ_FILE: " << e.what()
-              << std::endl;
+    std::cout << "ERROR::SHADER::FAILED_TO_READ_FILE: " << e.what() << std::endl;
   }
 
   return Shader::CreateFromSource(vertex_shader_code, fragment_shader_code);
@@ -106,32 +97,26 @@ void Shader::SetVec2(const std::string& name, const glm::vec2& value) const {
 }
 
 void Shader::SetVec3(const std::string& name, const glm::vec3& value) const {
-  glUniform3f(glGetUniformLocation(id_, name.c_str()), value[0], value[1],
-              value[2]);
+  glUniform3f(glGetUniformLocation(id_, name.c_str()), value[0], value[1], value[2]);
 }
 
 void Shader::SetVec4(const std::string& name, const glm::vec4& value) const {
-  glUniform4f(glGetUniformLocation(id_, name.c_str()), value[0], value[1],
-              value[2], value[3]);
+  glUniform4f(glGetUniformLocation(id_, name.c_str()), value[0], value[1], value[2], value[3]);
 }
 
 void Shader::SetMat2(const std::string& name, const glm::mat2& value) const {
-  glUniformMatrix2fv(glGetUniformLocation(id_, name.c_str()), 1, GL_FALSE,
-                     glm::value_ptr(value));
+  glUniformMatrix2fv(glGetUniformLocation(id_, name.c_str()), 1, GL_FALSE, glm::value_ptr(value));
 }
 
 void Shader::SetMat3(const std::string& name, const glm::mat3& value) const {
-  glUniformMatrix3fv(glGetUniformLocation(id_, name.c_str()), 1, GL_FALSE,
-                     glm::value_ptr(value));
+  glUniformMatrix3fv(glGetUniformLocation(id_, name.c_str()), 1, GL_FALSE, glm::value_ptr(value));
 }
 
 void Shader::SetMat4(const std::string& name, const glm::mat4& value) const {
-  glUniformMatrix4fv(glGetUniformLocation(id_, name.c_str()), 1, GL_FALSE,
-                     glm::value_ptr(value));
+  glUniformMatrix4fv(glGetUniformLocation(id_, name.c_str()), 1, GL_FALSE, glm::value_ptr(value));
 }
 
-void Shader::SetSampler2D(const std::string& name,
-                          const SharedTexture& texture) {
+void Shader::SetSampler2D(const std::string& name, const SharedTexture& texture) {
   if (texture && unit_ < GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS) {
     if (const auto gl_texture = texture->MakeGLObject()) {
       glActiveTexture(GL_TEXTURE0 + unit_);
@@ -142,8 +127,7 @@ void Shader::SetSampler2D(const std::string& name,
   }
 }
 
-SharedGLObject Shader::CompileShaderFromSource(const char* source,
-                                               const ShaderType& shader_type) {
+SharedGLObject Shader::CompileShaderFromSource(const char* source, const ShaderType& shader_type) {
   if (!source) {
     throw "Empty shader source code";
   }
@@ -152,10 +136,7 @@ SharedGLObject Shader::CompileShaderFromSource(const char* source,
   char exception[512];
 
   const auto shader = ScopedGLObject::Create(
-      [&shader_type]() -> GLuint {
-        return glCreateShader(static_cast<GLenum>(shader_type));
-      },
-      glDeleteShader);
+      [&shader_type]() -> GLuint { return glCreateShader(static_cast<GLenum>(shader_type)); }, glDeleteShader);
   glShaderSource(shader->GetId(), 1, &source, nullptr);
   glCompileShader(shader->GetId());
   glGetShaderiv(shader->GetId(), GL_COMPILE_STATUS, &success);

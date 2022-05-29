@@ -52,10 +52,8 @@ void Camera::GoDown(float step) {
 #pragma mark - Rotation
 
 glm::mat4 Camera::GetRotation() const {
-  const auto local_rotation_x =
-      glm::rotate(glm::mat4(1.0f), glm::radians(local_pitch_), {1, 0, 0});
-  const auto local_rotation_y =
-      glm::rotate(glm::mat4(1.0f), glm::radians(local_yaw_), {0, 1, 0});
+  const auto local_rotation_x = glm::rotate(glm::mat4(1.0f), glm::radians(local_pitch_), {1, 0, 0});
+  const auto local_rotation_y = glm::rotate(glm::mat4(1.0f), glm::radians(local_yaw_), {0, 1, 0});
   // clang-format off
   return glm::mat4 {
     camera_x_[0], camera_x_[1], camera_x_[2], 0,
@@ -111,6 +109,5 @@ glm::mat4 Camera::GetTransformMatrix() const {
 }
 
 glm::mat4 Camera::GetViewMatrix() const {
-  return glm::transpose(GetRotation()) *
-         glm::translate(glm::mat4(1.0f), -GetPosition());
+  return glm::transpose(GetRotation()) * glm::translate(glm::mat4(1.0f), -GetPosition());
 }

@@ -23,8 +23,7 @@ class ScopedGLObject final {
   const uint32_t id_;
   const Deleter deleter_;
 
-  explicit ScopedGLObject(const Constructor& constructor,
-                          const Deleter& deleter)
+  explicit ScopedGLObject(const Constructor& constructor, const Deleter& deleter)
       : id_(constructor()), deleter_(deleter) {}
 
   DISALLOW_COPY_ASSIGN_AND_MOVE(ScopedGLObject);

@@ -8,8 +8,7 @@
 
 #pragma mark - Attribute
 
-Attribute::Attribute(const std::string& name, AttributeType type, int size)
-    : name_(name), type_(type) {
+Attribute::Attribute(const std::string& name, AttributeType type, int size) : name_(name), type_(type) {
   if (type == AttributeType::kCustom) {
     size_ = size;
     return;
@@ -19,9 +18,7 @@ Attribute::Attribute(const std::string& name, AttributeType type, int size)
 
 #pragma mark - GLVertexBuffer
 
-GLVertexBuffer::GLVertexBuffer(uint32_t id,
-                               const SharedGLObject& vertex_info,
-                               const SharedGLObject& draw_sequence)
+GLVertexBuffer::GLVertexBuffer(uint32_t id, const SharedGLObject& vertex_info, const SharedGLObject& draw_sequence)
     : id_(id), vertex_info_(vertex_info), draw_sequence_(draw_sequence) {}
 
 GLVertexBuffer::~GLVertexBuffer() {
@@ -97,8 +94,7 @@ SharedGLVertexBuffer VertexBuffer::MakeGLObject() {
   glBufferData(GL_ARRAY_BUFFER, vbo_size, vertex_info_.data(), GL_STATIC_DRAW);
   int channel = 0, offset = 0;
   for (auto&& attribute : attribute_list_) {
-    glVertexAttribPointer(channel, attribute.GetSize(), GL_FLOAT, GL_FALSE,
-                          one_vertex_size_ * sizeof(float),
+    glVertexAttribPointer(channel, attribute.GetSize(), GL_FLOAT, GL_FALSE, one_vertex_size_ * sizeof(float),
                           reinterpret_cast<void*>(offset * sizeof(float)));
     glEnableVertexAttribArray(channel);
     channel += 1;
@@ -118,8 +114,7 @@ SharedGLVertexBuffer VertexBuffer::MakeGLObject() {
         [](GLuint id) { glDeleteBuffers(1, &id); });
     const int ebo_size = draw_sequence_.size() * sizeof(uint32_t);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo->GetId());
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, ebo_size, draw_sequence_.data(),
-                 GL_STATIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, ebo_size, draw_sequence_.data(), GL_STATIC_DRAW);
   }
 
   glBindVertexArray(0);

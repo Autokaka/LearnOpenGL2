@@ -10,8 +10,7 @@
 namespace {
 
 template <typename T, typename U>
-struct decay_equiv final : std::is_same<typename std::decay<T>::type, U>::type {
-};
+struct decay_equiv final : std::is_same<typename std::decay<T>::type, U>::type {};
 
 template <typename T>
 bool IsBool(const T& v) {

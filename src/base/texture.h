@@ -9,8 +9,7 @@
 #include "gpu_access.h"
 #include "scoped_gl_object.h"
 
-class Texture : public GPUAccess<SharedGLObject>,
-                std::enable_shared_from_this<Texture> {
+class Texture : public GPUAccess<SharedGLObject>, std::enable_shared_from_this<Texture> {
  public:
   enum class WrapMode : GLenum {
     kRepeat = GL_REPEAT,

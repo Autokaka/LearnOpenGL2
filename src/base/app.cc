@@ -19,11 +19,7 @@ SharedApp App::GetInstance() {
   return singleton_;
 }
 
-App::App()
-    : delegate_(nullptr),
-      window_(nullptr),
-      window_title_("Untitled"),
-      window_size_(glm::vec2(800, 600)) {}
+App::App() : delegate_(nullptr), window_(nullptr), window_title_("Untitled"), window_size_(glm::vec2(800, 600)) {}
 
 App::~App() {
   if (window_) {
@@ -55,8 +51,7 @@ int App::Run() {
   glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #endif
 
-  window_ = glfwCreateWindow(window_size_.x, window_size_.y,
-                             window_title_.c_str(), nullptr, nullptr);
+  window_ = glfwCreateWindow(window_size_.x, window_size_.y, window_title_.c_str(), nullptr, nullptr);
   if (!window_) {
     return -1;
   }
@@ -78,13 +73,12 @@ int App::Run() {
   ImGui_ImplOpenGL3_Init("#version 330 core");
 
   // initialize viewport
-  glfwSetFramebufferSizeCallback(
-      window_, [](GLFWwindow* window, int width, int height) {
-        const auto delegate = App::GetInstance()->delegate_;
-        if (delegate) {
-          delegate->WindowSizeDidChange(width, height);
-        }
-      });
+  glfwSetFramebufferSizeCallback(window_, [](GLFWwindow* window, int width, int height) {
+    const auto delegate = App::GetInstance()->delegate_;
+    if (delegate) {
+      delegate->WindowSizeDidChange(width, height);
+    }
+  });
   int viewport_width, viewport_height;
   glfwGetFramebufferSize(window_, &viewport_width, &viewport_height);
   if (delegate_) {
@@ -97,9 +91,7 @@ int App::Run() {
 
   while (!glfwWindowShouldClose(window_)) {
     if (delegate_) {
-      delegate_->KeyboardEvent([&](int request_key) -> int {
-        return glfwGetKey(window_, request_key);
-      });
+      delegate_->KeyboardEvent([&](int request_key) -> int { return glfwGetKey(window_, request_key); });
     }
 
     ImGui_ImplOpenGL3_NewFrame();

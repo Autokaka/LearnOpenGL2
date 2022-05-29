@@ -9,13 +9,11 @@
 #include "gpu_access.h"
 #include "shader.h"
 
-class Program final : public GPUAccess<SharedShader>,
-                      std::enable_shared_from_this<Program> {
+class Program final : public GPUAccess<SharedShader>, std::enable_shared_from_this<Program> {
  public:
   using SharedProgram = std::shared_ptr<Program>;
   using UniformProvider = std::function<std::any()>;
-  using UniformProviderMap =
-      std::unordered_map<std::string_view, UniformProvider>;
+  using UniformProviderMap = std::unordered_map<std::string_view, UniformProvider>;
 
   MAKE_SHARED_CONSTRUCTOR(Program, Create);
 

@@ -67,8 +67,7 @@ using SharedGLVertexBuffer = std::shared_ptr<GLVertexBuffer>;
 
 #pragma mark - VertexBuffer
 
-class VertexBuffer final : public GPUAccess<SharedGLVertexBuffer>,
-                           std::enable_shared_from_this<VertexBuffer> {
+class VertexBuffer final : public GPUAccess<SharedGLVertexBuffer>, std::enable_shared_from_this<VertexBuffer> {
  public:
   using SharedVertexBuffer = std::shared_ptr<VertexBuffer>;
   using VertexInfo = std::vector<float>;

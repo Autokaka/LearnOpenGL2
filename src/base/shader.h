@@ -19,11 +19,9 @@ class Shader final : public std::enable_shared_from_this<Shader> {
  public:
   using SharedShader = std::shared_ptr<Shader>;
 
-  static SharedShader CreateFromSource(
-      const std::string& vertex_shader_source,
-      const std::string& fragment_shader_source);
-  static SharedShader CreateFromFile(const std::string& vertex_shader_path,
-                                     const std::string& fragment_shader_path);
+  static SharedShader CreateFromSource(const std::string& vertex_shader_source,
+                                       const std::string& fragment_shader_source);
+  static SharedShader CreateFromFile(const std::string& vertex_shader_path, const std::string& fragment_shader_path);
   ~Shader();
 
   uint32_t GetId() const { return id_; }
@@ -51,8 +49,7 @@ class Shader final : public std::enable_shared_from_this<Shader> {
   MAKE_SHARED_CONSTRUCTOR(Shader, Create);
   explicit Shader(uint32_t id);
 
-  static SharedGLObject CompileShaderFromSource(const char* source,
-                                                const ShaderType& shader_type);
+  static SharedGLObject CompileShaderFromSource(const char* source, const ShaderType& shader_type);
 
   DISALLOW_COPY_ASSIGN_AND_MOVE(Shader);
 };

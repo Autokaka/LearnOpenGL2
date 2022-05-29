@@ -33,8 +33,8 @@ void GPUDevice::DrawContent() {
       if (const auto gl_ebo = gl_vao->GetDrawSequence()) {
         // If ebo exists, call glDrawElements
         glBindVertexArray(gl_vao->GetId());
-        glDrawElements(GL_TRIANGLES, current_vbo_->GetDrawSequence().size(),
-                       GL_UNSIGNED_INT, reinterpret_cast<void*>(0));
+        glDrawElements(GL_TRIANGLES, current_vbo_->GetDrawSequence().size(), GL_UNSIGNED_INT,
+                       reinterpret_cast<void*>(0));
         glBindVertexArray(0);
         return;
       }
@@ -61,8 +61,8 @@ void GPUDevice::DrawContent() {
       if (const auto gl_ebo = gl_vao->GetDrawSequence()) {
         // If ebo exists, call glDrawElements
         glBindVertexArray(gl_vao->GetId());
-        glDrawElements(GL_TRIANGLES, current_vbo_->GetDrawSequence().size(),
-                       GL_UNSIGNED_INT, reinterpret_cast<void*>(0));
+        glDrawElements(GL_TRIANGLES, current_vbo_->GetDrawSequence().size(), GL_UNSIGNED_INT,
+                       reinterpret_cast<void*>(0));
         glBindVertexArray(0);
         return;
       }

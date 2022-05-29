@@ -11,8 +11,7 @@ SharedTexture Texture::CreateFromFile(const std::string_view& file_path) {
 
   int nr_components;
   int width = 0, height = 0;
-  unsigned char* data =
-      stbi_load(file_path.data(), &width, &height, &nr_components, 0);
+  unsigned char* data = stbi_load(file_path.data(), &width, &height, &nr_components, 0);
   if (data) {
     const auto instance = SharedTexture(new Texture());
     instance->data_ = data;
@@ -51,38 +50,30 @@ Texture::~Texture() {
 
 void Texture::SetSWrapMode(const WrapMode& s_wrap_mode) {
   s_wrap_mode_ = s_wrap_mode;
-  ReplaceLastCommand("SetSWrapMode",
-                     [s_wrap_mode](const SharedGLObject gl_object) {
-                       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S,
-                                       static_cast<GLenum>(s_wrap_mode));
-                     });
+  ReplaceLastCommand("SetSWrapMode", [s_wrap_mode](const SharedGLObject gl_object) {
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, static_cast<GLenum>(s_wrap_mode));
+  });
 }
 
 void Texture::SetTWrapMode(const WrapMode& t_wrap_mode) {
   t_wrap_mode_ = t_wrap_mode;
-  ReplaceLastCommand("SetTWrapMode",
-                     [t_wrap_mode](const SharedGLObject& gl_object) {
-                       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T,
-                                       static_cast<GLenum>(t_wrap_mode));
-                     });
+  ReplaceLastCommand("SetTWrapMode", [t_wrap_mode](const SharedGLObject& gl_object) {
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, static_cast<GLenum>(t_wrap_mode));
+  });
 }
 
 void Texture::SetMinFilter(const MinFilter& min_filter) {
   min_filter_ = min_filter;
-  ReplaceLastCommand("SetMinFilter",
-                     [min_filter](const SharedGLObject& gl_object) {
-                       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
-                                       static_cast<GLenum>(min_filter));
-                     });
+  ReplaceLastCommand("SetMinFilter", [min_filter](const SharedGLObject& gl_object) {
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, static_cast<GLenum>(min_filter));
+  });
 }
 
 void Texture::SetMagFilter(const MagFilter& mag_filter) {
   mag_filter_ = mag_filter;
-  ReplaceLastCommand("SetMagFilter",
-                     [mag_filter](const SharedGLObject& gl_object) {
-                       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,
-                                       static_cast<GLenum>(mag_filter));
-                     });
+  ReplaceLastCommand("SetMagFilter", [mag_filter](const SharedGLObject& gl_object) {
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, static_cast<GLenum>(mag_filter));
+  });
 }
 
 SharedGLObject Texture::MakeGLObject() {
@@ -104,10 +95,9 @@ SharedGLObject Texture::MakeGLObject() {
   SetTWrapMode(t_wrap_mode_);
   SetMinFilter(min_filter_);
   SetMagFilter(mag_filter_);
-  glTexImage2D(/** define texture format in gl */ GL_TEXTURE_2D, 0,
-               static_cast<GLenum>(format_), GetWidth(), GetHeight(), 0,
-               /** define raw image format */ static_cast<GLenum>(format_),
-               GL_UNSIGNED_BYTE, data_);
+  glTexImage2D(/** define texture format in gl */ GL_TEXTURE_2D, 0, static_cast<GLenum>(format_), GetWidth(),
+               GetHeight(), 0,
+               /** define raw image format */ static_cast<GLenum>(format_), GL_UNSIGNED_BYTE, data_);
   glGenerateMipmap(GL_TEXTURE_2D);
   glBindTexture(GL_TEXTURE_2D, 0);
 
