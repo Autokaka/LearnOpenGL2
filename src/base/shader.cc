@@ -84,8 +84,9 @@ Shader::~Shader() {
   glDeleteProgram(id_);
 }
 
-void Shader::Use() const {
+void Shader::Use() {
   glUseProgram(id_);
+  unit_ = 0;
 }
 
 void Shader::SetBool(const std::string& name, bool value) const {
@@ -100,44 +101,45 @@ void Shader::SetFloat(const std::string& name, float value) const {
   glUniform1f(glGetUniformLocation(id_, name.c_str()), value);
 }
 
-void Shader::SetVec2(const std::string& name, glm::vec2 value) const {
+void Shader::SetVec2(const std::string& name, const glm::vec2& value) const {
   glUniform2f(glGetUniformLocation(id_, name.c_str()), value[0], value[1]);
 }
 
-void Shader::SetVec3(const std::string& name, glm::vec3 value) const {
+void Shader::SetVec3(const std::string& name, const glm::vec3& value) const {
   glUniform3f(glGetUniformLocation(id_, name.c_str()), value[0], value[1],
               value[2]);
 }
 
-void Shader::SetVec4(const std::string& name, glm::vec4 value) const {
+void Shader::SetVec4(const std::string& name, const glm::vec4& value) const {
   glUniform4f(glGetUniformLocation(id_, name.c_str()), value[0], value[1],
               value[2], value[3]);
 }
 
-void Shader::SetMat2(const std::string& name, glm::mat2 value) const {
+void Shader::SetMat2(const std::string& name, const glm::mat2& value) const {
   glUniformMatrix2fv(glGetUniformLocation(id_, name.c_str()), 1, GL_FALSE,
                      glm::value_ptr(value));
 }
 
-void Shader::SetMat3(const std::string& name, glm::mat3 value) const {
+void Shader::SetMat3(const std::string& name, const glm::mat3& value) const {
   glUniformMatrix3fv(glGetUniformLocation(id_, name.c_str()), 1, GL_FALSE,
                      glm::value_ptr(value));
 }
 
-void Shader::SetMat4(const std::string& name, glm::mat4 value) const {
+void Shader::SetMat4(const std::string& name, const glm::mat4& value) const {
   glUniformMatrix4fv(glGetUniformLocation(id_, name.c_str()), 1, GL_FALSE,
                      glm::value_ptr(value));
 }
 
 void Shader::SetSampler2D(const std::string& name,
                           const SharedTexture& texture) {
-  const auto& gl_texture = textures_[texture];
-  if (!gl_texture) {
-    textures_[texture] = texture->CreateGLObject();
+  if (texture && unit_ < GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS) {
+    if (const auto gl_texture = texture->MakeGLObject()) {
+      glActiveTexture(GL_TEXTURE0 + unit_);
+      glBindTexture(GL_TEXTURE_2D, gl_texture->GetId());
+      SetInt(name, unit_);
+      unit_ += 1;
+    }
   }
-  glBindTexture(GL_TEXTURE_2D, gl_texture->GetId());
-  texture->SubmitCommands(gl_texture);
-  SetInt(name, texture->GetUnit());
 }
 
 SharedGLObject Shader::CompileShaderFromSource(const char* source,

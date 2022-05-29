@@ -73,9 +73,10 @@ void VertexBuffer::SetDrawSequence(const DrawSequence& draw_sequence) {
   draw_sequence_ = draw_sequence;
 }
 
-SharedGLVertexBuffer VertexBuffer::CreateGLObject() {
-  if (IsEmpty()) {
-    return nullptr;
+SharedGLVertexBuffer VertexBuffer::MakeGLObject() {
+  if (gl_object_) {
+    SubmitCommands();
+    return gl_object_;
   }
 
   // vao
@@ -126,5 +127,15 @@ SharedGLVertexBuffer VertexBuffer::CreateGLObject() {
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
   }
 
-  return GLVertexBuffer::Create(vao, vbo, ebo);
+  gl_object_ = GLVertexBuffer::Create(vao, vbo, ebo);
+  return gl_object_ ? MakeGLObject() : nullptr;
+}
+
+void VertexBuffer::SubmitCommands() {
+  // TODO(Autokaka): Bind/Unbind VBO & EBO for updating.
+  if (gl_object_ && GetCommandList().size() > 0) {
+    glBindVertexArray(gl_object_->GetId());
+    GPUAccess::SubmitCommands();
+    glBindVertexArray(0);
+  }
 }

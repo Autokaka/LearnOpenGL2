@@ -5,8 +5,6 @@
 #pragma once
 
 #include <glad/glad.h>
-#include <list>
-#include <mutex>
 
 #include "gpu_access.h"
 #include "scoped_gl_object.h"
@@ -55,16 +53,14 @@ class Texture : public GPUAccess<SharedGLObject>,
   void SetMagFilter(const MagFilter& mag_filter);
   int GetWidth() const { return width_; }
   int GetHeight() const { return height_; }
-  int GetUnit() const { return unit_; }
   Format GetFormat() const { return format_; }
 
-  SharedGLObject CreateGLObject() override;
+  SharedGLObject MakeGLObject() override;
+
+ protected:
+  void SubmitCommands() override;
 
  private:
-  static std::list<int> available_units_;
-  static std::once_flag available_units_initilized_;
-  int unit_;
-
   Format format_;
   int width_;
   int height_;

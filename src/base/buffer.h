@@ -89,7 +89,10 @@ class VertexBuffer final : public GPUAccess<SharedGLVertexBuffer>,
   const DrawSequence& GetDrawSequence() const { return draw_sequence_; }
   void SetDrawSequence(const DrawSequence& draw_sequence);
 
-  SharedGLVertexBuffer CreateGLObject() override;
+  SharedGLVertexBuffer MakeGLObject() override;
+
+ protected:
+  void SubmitCommands() override;
 
  private:
   int one_vertex_size_;

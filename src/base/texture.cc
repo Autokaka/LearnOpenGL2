@@ -6,9 +6,6 @@
 
 #include "texture.h"
 
-std::list<int> Texture::available_units_{};
-std::once_flag Texture::available_units_initilized_;
-
 SharedTexture Texture::CreateFromFile(const std::string_view& file_path) {
   stbi_set_flip_vertically_on_load(true);
 
@@ -37,29 +34,18 @@ SharedTexture Texture::CreateFromFile(const std::string_view& file_path) {
 }
 
 Texture::Texture()
-    : unit_(-1),
-      width_(0),
+    : width_(0),
       height_(0),
       s_wrap_mode_(WrapMode::kClampToBorder),
       t_wrap_mode_(WrapMode::kClampToBorder),
       min_filter_(MinFilter::kLinearMipmapLinear),
       mag_filter_(MagFilter::kLinear),
-      data_(nullptr) {
-  std::call_once(available_units_initilized_, [&]() {
-    for (int i = 0; i < GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS; ++i) {
-      available_units_.emplace_back(i);
-    }
-  });
-}
+      data_(nullptr) {}
 
 Texture::~Texture() {
   if (data_) {
     stbi_image_free(data_);
     data_ = nullptr;
-  }
-
-  if (unit_ >= 0) {
-    available_units_.emplace_back(unit_);
   }
 }
 
@@ -99,14 +85,13 @@ void Texture::SetMagFilter(const MagFilter& mag_filter) {
                      });
 }
 
-SharedGLObject Texture::CreateGLObject() {
-  if (available_units_.empty()) {
-    return nullptr;
+SharedGLObject Texture::MakeGLObject() {
+  if (gl_object_) {
+    SubmitCommands();
+    return gl_object_;
   }
 
-  unit_ = available_units_.front();
-  available_units_.pop_front();
-  auto gl_texture = ScopedGLObject::Create(
+  gl_object_ = ScopedGLObject::Create(
       []() -> GLuint {
         GLuint id;
         glGenTextures(1, &id);
@@ -114,13 +99,11 @@ SharedGLObject Texture::CreateGLObject() {
       },
       [](GLuint id) { glDeleteTextures(1, &id); });
 
-  glActiveTexture(GL_TEXTURE0 + unit_);
-  glBindTexture(GL_TEXTURE_2D, gl_texture->GetId());
+  glBindTexture(GL_TEXTURE_2D, gl_object_->GetId());
   SetSWrapMode(s_wrap_mode_);
   SetTWrapMode(t_wrap_mode_);
   SetMinFilter(min_filter_);
   SetMagFilter(mag_filter_);
-  SubmitCommands(gl_texture);
   glTexImage2D(/** define texture format in gl */ GL_TEXTURE_2D, 0,
                static_cast<GLenum>(format_), GetWidth(), GetHeight(), 0,
                /** define raw image format */ static_cast<GLenum>(format_),
@@ -128,5 +111,13 @@ SharedGLObject Texture::CreateGLObject() {
   glGenerateMipmap(GL_TEXTURE_2D);
   glBindTexture(GL_TEXTURE_2D, 0);
 
-  return gl_texture;
+  return gl_object_ ? MakeGLObject() : nullptr;
+}
+
+void Texture::SubmitCommands() {
+  if (gl_object_ && GetCommandList().size() > 0) {
+    glBindTexture(GL_TEXTURE_2D, gl_object_->GetId());
+    GPUAccess::SubmitCommands();
+    glBindTexture(GL_TEXTURE_2D, 0);
+  }
 }
