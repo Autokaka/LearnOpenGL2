@@ -7,8 +7,7 @@
 #include <string_view>
 #include <vector>
 
-#include "base/macros.h"
-#include "scoped_gl_object.h"
+#include "macros.h"
 
 template <typename GLObject>
 class GPUAccess {

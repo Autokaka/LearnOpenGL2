@@ -84,8 +84,9 @@ Shader::~Shader() {
   glDeleteProgram(id_);
 }
 
-void Shader::Use() const {
+void Shader::Use() {
   glUseProgram(id_);
+  unit_ = 0;
 }
 
 void Shader::SetBool(const std::string& name, bool value) const {
@@ -131,8 +132,14 @@ void Shader::SetMat4(const std::string& name, const glm::mat4& value) const {
 
 void Shader::SetSampler2D(const std::string& name,
                           const SharedTexture& texture) {
-  texture->MakeGLObject();
-  SetInt(name, texture->GetUnit());
+  if (texture && unit_ < GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS) {
+    if (const auto gl_texture = texture->MakeGLObject()) {
+      glActiveTexture(GL_TEXTURE0 + unit_);
+      glBindTexture(GL_TEXTURE_2D, gl_texture->GetId());
+      SetInt(name, unit_);
+      unit_ += 1;
+    }
+  }
 }
 
 SharedGLObject Shader::CompileShaderFromSource(const char* source,

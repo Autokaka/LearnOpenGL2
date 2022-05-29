@@ -6,9 +6,6 @@
 
 #include "texture.h"
 
-std::list<int> Texture::available_units_{};
-std::once_flag Texture::available_units_initilized_;
-
 SharedTexture Texture::CreateFromFile(const std::string_view& file_path) {
   stbi_set_flip_vertically_on_load(true);
 
@@ -37,29 +34,18 @@ SharedTexture Texture::CreateFromFile(const std::string_view& file_path) {
 }
 
 Texture::Texture()
-    : unit_(-1),
-      width_(0),
+    : width_(0),
       height_(0),
       s_wrap_mode_(WrapMode::kClampToBorder),
       t_wrap_mode_(WrapMode::kClampToBorder),
       min_filter_(MinFilter::kLinearMipmapLinear),
       mag_filter_(MagFilter::kLinear),
-      data_(nullptr) {
-  std::call_once(available_units_initilized_, [&]() {
-    for (int i = 0; i < GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS; ++i) {
-      available_units_.emplace_back(i);
-    }
-  });
-}
+      data_(nullptr) {}
 
 Texture::~Texture() {
   if (data_) {
     stbi_image_free(data_);
     data_ = nullptr;
-  }
-
-  if (unit_ >= 0) {
-    available_units_.emplace_back(unit_);
   }
 }
 
@@ -105,12 +91,6 @@ SharedGLObject Texture::MakeGLObject() {
     return gl_object_;
   }
 
-  if (available_units_.empty()) {
-    return nullptr;
-  }
-
-  unit_ = available_units_.front();
-  available_units_.pop_front();
   gl_object_ = ScopedGLObject::Create(
       []() -> GLuint {
         GLuint id;
@@ -119,7 +99,6 @@ SharedGLObject Texture::MakeGLObject() {
       },
       [](GLuint id) { glDeleteTextures(1, &id); });
 
-  glActiveTexture(GL_TEXTURE0 + unit_);
   glBindTexture(GL_TEXTURE_2D, gl_object_->GetId());
   SetSWrapMode(s_wrap_mode_);
   SetTWrapMode(t_wrap_mode_);
@@ -130,6 +109,7 @@ SharedGLObject Texture::MakeGLObject() {
                /** define raw image format */ static_cast<GLenum>(format_),
                GL_UNSIGNED_BYTE, data_);
   glGenerateMipmap(GL_TEXTURE_2D);
+  glBindTexture(GL_TEXTURE_2D, 0);
 
   return gl_object_ ? MakeGLObject() : nullptr;
 }
@@ -138,5 +118,6 @@ void Texture::SubmitCommands() {
   if (gl_object_ && GetCommandList().size() > 0) {
     glBindTexture(GL_TEXTURE_2D, gl_object_->GetId());
     GPUAccess::SubmitCommands();
+    glBindTexture(GL_TEXTURE_2D, 0);
   }
 }

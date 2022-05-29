@@ -28,11 +28,7 @@ class Shader final : public std::enable_shared_from_this<Shader> {
 
   uint32_t GetId() const { return id_; }
 
-  [[deprecated(
-      "Shader will not be used directly in next release version of "
-      "forge-engine, please use GPUDevice::UseProgram(const SharedProgram& "
-      "program) instead.")]] void
-  Use() const;
+  void Use();
 
   void SetBool(const std::string& name, bool value) const;
   void SetInt(const std::string& name, int value) const;
@@ -50,6 +46,7 @@ class Shader final : public std::enable_shared_from_this<Shader> {
 
  private:
   GLuint id_;
+  GLuint unit_;
 
   MAKE_SHARED_CONSTRUCTOR(Shader, Create);
   explicit Shader(uint32_t id);

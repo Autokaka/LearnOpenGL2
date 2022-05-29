@@ -56,8 +56,6 @@ void GPUDevice::DrawContent() {
   // TODO(Autokaka): Remove the codes below in next release version of
   // forge-engine.
   else if (current_vbo_ && current_shader_) {
-    current_shader_->Use();
-
     const auto gl_vao = current_vbo_->MakeGLObject();
     if (gl_vao) {
       if (const auto gl_ebo = gl_vao->GetDrawSequence()) {
@@ -77,7 +75,5 @@ void GPUDevice::DrawContent() {
         return;
       }
     }
-
-    glUseProgram(0);
   }
 }
