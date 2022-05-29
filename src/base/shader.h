@@ -4,11 +4,7 @@
 
 #pragma once
 
-#include <glad/glad.h>
 #include <glm/glm.hpp>
-#include <memory>
-#include <string>
-#include <unordered_map>
 
 #include "macros.h"
 #include "scoped_gl_object.h"
@@ -30,25 +26,30 @@ class Shader final : public std::enable_shared_from_this<Shader> {
                                      const std::string& fragment_shader_path);
   ~Shader();
 
-  void Use() const;
+  uint32_t GetId() const { return id_; }
+
+  [[deprecated(
+      "Shader will not be used directly in next release version of "
+      "forge-engine, please use GPUDevice::UseProgram(const SharedProgram& "
+      "program) instead.")]] void
+  Use() const;
 
   void SetBool(const std::string& name, bool value) const;
   void SetInt(const std::string& name, int value) const;
   void SetFloat(const std::string& name, float value) const;
 
-  void SetVec2(const std::string& name, glm::vec2 value) const;
-  void SetVec3(const std::string& name, glm::vec3 value) const;
-  void SetVec4(const std::string& name, glm::vec4 value) const;
+  void SetVec2(const std::string& name, const glm::vec2& value) const;
+  void SetVec3(const std::string& name, const glm::vec3& value) const;
+  void SetVec4(const std::string& name, const glm::vec4& value) const;
 
-  void SetMat2(const std::string& name, glm::mat2 value) const;
-  void SetMat3(const std::string& name, glm::mat3 value) const;
-  void SetMat4(const std::string& name, glm::mat4 value) const;
+  void SetMat2(const std::string& name, const glm::mat2& value) const;
+  void SetMat3(const std::string& name, const glm::mat3& value) const;
+  void SetMat4(const std::string& name, const glm::mat4& value) const;
 
   void SetSampler2D(const std::string& name, const SharedTexture& texture);
 
  private:
   GLuint id_;
-  std::unordered_map<SharedTexture, SharedGLObject> textures_;
 
   MAKE_SHARED_CONSTRUCTOR(Shader, Create);
   explicit Shader(uint32_t id);

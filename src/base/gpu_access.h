@@ -33,15 +33,16 @@ class GPUAccess {
   using CommandList = std::vector<SharedCommand>;
 
   virtual ~GPUAccess() = default;
-  virtual GLObject CreateGLObject() = 0;
-  virtual void SubmitCommands(const GLObject& gl_object) final {
+  virtual GLObject MakeGLObject() = 0;
+
+ protected:
+  GLObject gl_object_;
+  virtual void SubmitCommands() {
     for (const auto& command : GetCommandList()) {
-      command->callback(gl_object);
+      command->callback(gl_object_);
     }
     ClearCommands();
   }
-
- protected:
   const CommandList& GetCommandList() const { return command_list_; }
   void AppendCommand(std::string_view name,
                      const typename Command::Callback& callback) {

@@ -4,10 +4,10 @@
 
 #pragma once
 
-#include <unordered_map>
 #include <vector>
 
 #include "buffer.h"
+#include "program.h"
 #include "shader.h"
 #include "texture.h"
 
@@ -16,14 +16,20 @@ class GPUDevice final {
   MAKE_SHARED_CONSTRUCTOR(GPUDevice, Create);
 
   void UseVertexBuffer(const SharedVertexBuffer& vbo);
-  void UseProgram(const SharedShader& shader);
+  [[deprecated(
+      "Shader will not be used directly in next version of forge-engine, "
+      "please use GPUDevice::UseProgram(const SharedProgram& "
+      "program) instead.")]] void
+  UseProgram(const SharedShader& shader);
+  void UseProgram(const SharedProgram& program);
   void DrawContent();
 
  private:
-  std::unordered_map<SharedVertexBuffer, SharedGLVertexBuffer> vbos_;
   SharedVertexBuffer current_vbo_;
-  SharedGLVertexBuffer current_gl_vbo_;
-  SharedShader current_shader_;
+  SharedProgram current_program_;
+  [[deprecated(
+      "Remove this feature in next release version of "
+      "forge-engine.")]] SharedShader current_shader_;
 
   GPUDevice();
 

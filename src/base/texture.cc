@@ -99,14 +99,19 @@ void Texture::SetMagFilter(const MagFilter& mag_filter) {
                      });
 }
 
-SharedGLObject Texture::CreateGLObject() {
+SharedGLObject Texture::MakeGLObject() {
+  if (gl_object_) {
+    SubmitCommands();
+    return gl_object_;
+  }
+
   if (available_units_.empty()) {
     return nullptr;
   }
 
   unit_ = available_units_.front();
   available_units_.pop_front();
-  auto gl_texture = ScopedGLObject::Create(
+  gl_object_ = ScopedGLObject::Create(
       []() -> GLuint {
         GLuint id;
         glGenTextures(1, &id);
@@ -115,18 +120,23 @@ SharedGLObject Texture::CreateGLObject() {
       [](GLuint id) { glDeleteTextures(1, &id); });
 
   glActiveTexture(GL_TEXTURE0 + unit_);
-  glBindTexture(GL_TEXTURE_2D, gl_texture->GetId());
+  glBindTexture(GL_TEXTURE_2D, gl_object_->GetId());
   SetSWrapMode(s_wrap_mode_);
   SetTWrapMode(t_wrap_mode_);
   SetMinFilter(min_filter_);
   SetMagFilter(mag_filter_);
-  SubmitCommands(gl_texture);
   glTexImage2D(/** define texture format in gl */ GL_TEXTURE_2D, 0,
                static_cast<GLenum>(format_), GetWidth(), GetHeight(), 0,
                /** define raw image format */ static_cast<GLenum>(format_),
                GL_UNSIGNED_BYTE, data_);
   glGenerateMipmap(GL_TEXTURE_2D);
-  glBindTexture(GL_TEXTURE_2D, 0);
 
-  return gl_texture;
+  return gl_object_ ? MakeGLObject() : nullptr;
+}
+
+void Texture::SubmitCommands() {
+  if (gl_object_ && GetCommandList().size() > 0) {
+    glBindTexture(GL_TEXTURE_2D, gl_object_->GetId());
+    GPUAccess::SubmitCommands();
+  }
 }

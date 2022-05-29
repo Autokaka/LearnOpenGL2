@@ -58,7 +58,10 @@ class Texture : public GPUAccess<SharedGLObject>,
   int GetUnit() const { return unit_; }
   Format GetFormat() const { return format_; }
 
-  SharedGLObject CreateGLObject() override;
+  SharedGLObject MakeGLObject() override;
+
+ protected:
+  void SubmitCommands() override;
 
  private:
   static std::list<int> available_units_;
