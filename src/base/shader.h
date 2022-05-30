@@ -19,28 +19,29 @@ class Shader final : public std::enable_shared_from_this<Shader> {
  public:
   using SharedShader = std::shared_ptr<Shader>;
 
-  static SharedShader CreateFromSource(const std::string& vertex_shader_source,
-                                       const std::string& fragment_shader_source);
-  static SharedShader CreateFromFile(const std::string& vertex_shader_path, const std::string& fragment_shader_path);
+  static SharedShader CreateFromSource(const std::string_view& vertex_shader_source,
+                                       const std::string_view& fragment_shader_source);
+  static SharedShader CreateFromFile(const std::string_view& vertex_shader_path,
+                                     const std::string_view& fragment_shader_path);
   ~Shader();
 
   uint32_t GetId() const { return id_; }
 
   void Use();
 
-  void SetBool(const std::string& name, bool value) const;
-  void SetInt(const std::string& name, int value) const;
-  void SetFloat(const std::string& name, float value) const;
+  void SetBool(const std::string_view& name, bool value) const;
+  void SetInt(const std::string_view& name, int value) const;
+  void SetFloat(const std::string_view& name, float value) const;
 
-  void SetVec2(const std::string& name, const glm::vec2& value) const;
-  void SetVec3(const std::string& name, const glm::vec3& value) const;
-  void SetVec4(const std::string& name, const glm::vec4& value) const;
+  void SetVec2(const std::string_view& name, const glm::vec2& value) const;
+  void SetVec3(const std::string_view& name, const glm::vec3& value) const;
+  void SetVec4(const std::string_view& name, const glm::vec4& value) const;
 
-  void SetMat2(const std::string& name, const glm::mat2& value) const;
-  void SetMat3(const std::string& name, const glm::mat3& value) const;
-  void SetMat4(const std::string& name, const glm::mat4& value) const;
+  void SetMat2(const std::string_view& name, const glm::mat2& value) const;
+  void SetMat3(const std::string_view& name, const glm::mat3& value) const;
+  void SetMat4(const std::string_view& name, const glm::mat4& value) const;
 
-  void SetSampler2D(const std::string& name, const SharedTexture& texture);
+  void SetSampler2D(const std::string_view& name, const SharedTexture& texture);
 
  private:
   GLuint id_;

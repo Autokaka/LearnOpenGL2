@@ -23,7 +23,7 @@ class GPUAccess {
     const Callback callback;
 
    private:
-    explicit Command(std::string_view name, const Callback& callback) : name(name), callback(callback) {}
+    explicit Command(const std::string_view& name, const Callback& callback) : name(name), callback(callback) {}
 
     DISALLOW_COPY_ASSIGN_AND_MOVE(Command);
   };
@@ -42,10 +42,10 @@ class GPUAccess {
     ClearCommands();
   }
   const CommandList& GetCommandList() const { return command_list_; }
-  void AppendCommand(std::string_view name, const typename Command::Callback& callback) {
+  void AppendCommand(const std::string_view& name, const typename Command::Callback& callback) {
     command_list_.emplace_back(Command::Create(name, callback));
   }
-  void ReplaceLastCommand(std::string_view name, const typename Command::Callback& callback) {
+  void ReplaceLastCommand(const std::string_view& name, const typename Command::Callback& callback) {
     for (auto&& it = command_list_.rbegin(); it != command_list_.rend(); ++it) {
       if (name == it->get()->name) {
         *it = Command::Create(name, callback);

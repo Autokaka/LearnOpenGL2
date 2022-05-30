@@ -5,21 +5,21 @@
 
 #include "shader.h"
 
-SharedShader Shader::CreateFromSource(const std::string& vertex_shader_source,
-                                      const std::string& fragment_shader_source) {
+SharedShader Shader::CreateFromSource(const std::string_view& vertex_shader_source,
+                                      const std::string_view& fragment_shader_source) {
   // create shaders
   SharedGLObject vertex_shader, fragment_shader;
 
   try {
-    vertex_shader = CompileShaderFromSource(vertex_shader_source.c_str(), ShaderType::kVertex);
-  } catch (const std::string& e) {
+    vertex_shader = CompileShaderFromSource(vertex_shader_source.data(), ShaderType::kVertex);
+  } catch (const std::string_view& e) {
     std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED: " << e << std::endl;
     return nullptr;
   }
 
   try {
-    fragment_shader = CompileShaderFromSource(fragment_shader_source.c_str(), ShaderType::kFragment);
-  } catch (const std::string& e) {
+    fragment_shader = CompileShaderFromSource(fragment_shader_source.data(), ShaderType::kFragment);
+  } catch (const std::string_view& e) {
     std::cout << "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED: " << e << std::endl;
     return nullptr;
   }
@@ -42,15 +42,16 @@ SharedShader Shader::CreateFromSource(const std::string& vertex_shader_source,
   return std::shared_ptr<Shader>(new Shader(program_id));
 }
 
-SharedShader Shader::CreateFromFile(const std::string& vertex_shader_path, const std::string& fragment_shader_path) {
+SharedShader Shader::CreateFromFile(const std::string_view& vertex_shader_path,
+                                    const std::string_view& fragment_shader_path) {
   // load shaders from file
   std::ifstream vertex_shader_file;
   std::ifstream fragment_shader_file;
   vertex_shader_file.exceptions(std::ifstream::failbit | std::ifstream::badbit);
   fragment_shader_file.exceptions(std::ifstream::failbit | std::ifstream::badbit);
 
-  std::string vertex_shader_code;
-  std::string fragment_shader_code;
+  std::string_view vertex_shader_code;
+  std::string_view fragment_shader_code;
   try {
     vertex_shader_file.open(vertex_shader_path);
     fragment_shader_file.open(fragment_shader_path);
@@ -80,43 +81,43 @@ void Shader::Use() {
   unit_ = 0;
 }
 
-void Shader::SetBool(const std::string& name, bool value) const {
-  glUniform1i(glGetUniformLocation(id_, name.c_str()), value);
+void Shader::SetBool(const std::string_view& name, bool value) const {
+  glUniform1i(glGetUniformLocation(id_, name.data()), value);
 }
 
-void Shader::SetInt(const std::string& name, int value) const {
-  glUniform1i(glGetUniformLocation(id_, name.c_str()), value);
+void Shader::SetInt(const std::string_view& name, int value) const {
+  glUniform1i(glGetUniformLocation(id_, name.data()), value);
 }
 
-void Shader::SetFloat(const std::string& name, float value) const {
-  glUniform1f(glGetUniformLocation(id_, name.c_str()), value);
+void Shader::SetFloat(const std::string_view& name, float value) const {
+  glUniform1f(glGetUniformLocation(id_, name.data()), value);
 }
 
-void Shader::SetVec2(const std::string& name, const glm::vec2& value) const {
-  glUniform2f(glGetUniformLocation(id_, name.c_str()), value[0], value[1]);
+void Shader::SetVec2(const std::string_view& name, const glm::vec2& value) const {
+  glUniform2f(glGetUniformLocation(id_, name.data()), value[0], value[1]);
 }
 
-void Shader::SetVec3(const std::string& name, const glm::vec3& value) const {
-  glUniform3f(glGetUniformLocation(id_, name.c_str()), value[0], value[1], value[2]);
+void Shader::SetVec3(const std::string_view& name, const glm::vec3& value) const {
+  glUniform3f(glGetUniformLocation(id_, name.data()), value[0], value[1], value[2]);
 }
 
-void Shader::SetVec4(const std::string& name, const glm::vec4& value) const {
-  glUniform4f(glGetUniformLocation(id_, name.c_str()), value[0], value[1], value[2], value[3]);
+void Shader::SetVec4(const std::string_view& name, const glm::vec4& value) const {
+  glUniform4f(glGetUniformLocation(id_, name.data()), value[0], value[1], value[2], value[3]);
 }
 
-void Shader::SetMat2(const std::string& name, const glm::mat2& value) const {
-  glUniformMatrix2fv(glGetUniformLocation(id_, name.c_str()), 1, GL_FALSE, glm::value_ptr(value));
+void Shader::SetMat2(const std::string_view& name, const glm::mat2& value) const {
+  glUniformMatrix2fv(glGetUniformLocation(id_, name.data()), 1, GL_FALSE, glm::value_ptr(value));
 }
 
-void Shader::SetMat3(const std::string& name, const glm::mat3& value) const {
-  glUniformMatrix3fv(glGetUniformLocation(id_, name.c_str()), 1, GL_FALSE, glm::value_ptr(value));
+void Shader::SetMat3(const std::string_view& name, const glm::mat3& value) const {
+  glUniformMatrix3fv(glGetUniformLocation(id_, name.data()), 1, GL_FALSE, glm::value_ptr(value));
 }
 
-void Shader::SetMat4(const std::string& name, const glm::mat4& value) const {
-  glUniformMatrix4fv(glGetUniformLocation(id_, name.c_str()), 1, GL_FALSE, glm::value_ptr(value));
+void Shader::SetMat4(const std::string_view& name, const glm::mat4& value) const {
+  glUniformMatrix4fv(glGetUniformLocation(id_, name.data()), 1, GL_FALSE, glm::value_ptr(value));
 }
 
-void Shader::SetSampler2D(const std::string& name, const SharedTexture& texture) {
+void Shader::SetSampler2D(const std::string_view& name, const SharedTexture& texture) {
   if (texture && unit_ < GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS) {
     if (const auto gl_texture = texture->MakeGLObject()) {
       glActiveTexture(GL_TEXTURE0 + unit_);
@@ -142,7 +143,7 @@ SharedGLObject Shader::CompileShaderFromSource(const char* source, const ShaderT
   glGetShaderiv(shader->GetId(), GL_COMPILE_STATUS, &success);
   if (!success) {
     glGetShaderInfoLog(shader->GetId(), 512, nullptr, exception);
-    throw std::string(exception);
+    throw std::string_view(exception);
   }
 
   return shader;
