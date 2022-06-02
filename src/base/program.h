@@ -9,7 +9,7 @@
 #include "gpu_access.h"
 #include "shader.h"
 
-class Program final : public GPUAccess<SharedShader>, std::enable_shared_from_this<Program> {
+class Program : public GPUAccess<SharedShader>, std::enable_shared_from_this<Program> {
  public:
   using SharedProgram = std::shared_ptr<Program>;
   using UniformProvider = std::function<std::any()>;
@@ -28,14 +28,14 @@ class Program final : public GPUAccess<SharedShader>, std::enable_shared_from_th
   SharedShader MakeGLObject() override;
 
  protected:
+  Program();
+
   void SubmitCommands() override;
 
  private:
   std::string_view vertex_shader_;
   std::string_view fragment_shader_;
   UniformProviderMap uniform_providers_;
-
-  Program();
 
   DISALLOW_COPY_ASSIGN_AND_MOVE(Program);
 };
