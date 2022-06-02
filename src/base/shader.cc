@@ -7,6 +7,7 @@
 
 int Shader::texture_unit_limit_per_fragmet_shader_ = 0;
 int Shader::texture_unit_limit_per_shader_ = 0;
+std::once_flag Shader::is_texture_unit_limits_queried_;
 
 SharedShader Shader::CreateFromSource(const std::string_view& vertex_shader_source,
                                       const std::string_view& fragment_shader_source) {
