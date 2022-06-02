@@ -5,6 +5,9 @@
 
 #include "shader.h"
 
+int Shader::texture_unit_limit_per_fragmet_shader_ = 0;
+int Shader::texture_unit_limit_per_shader_ = 0;
+
 SharedShader Shader::CreateFromSource(const std::string_view& vertex_shader_source,
                                       const std::string_view& fragment_shader_source) {
   // create shaders
@@ -70,6 +73,14 @@ SharedShader Shader::CreateFromFile(const std::string_view& vertex_shader_path,
   return Shader::CreateFromSource(vertex_shader_code, fragment_shader_code);
 }
 
+int Shader::GetTextureUnitLimitPerFragmentShader() {
+  return texture_unit_limit_per_fragmet_shader_;
+}
+
+int Shader::GetTextureUnitLimitPerShader() {
+  return texture_unit_limit_per_shader_;
+}
+
 Shader::Shader(uint32_t id) : id_(id) {}
 
 Shader::~Shader() {
@@ -118,7 +129,12 @@ void Shader::SetMat4(const std::string_view& name, const glm::mat4& value) const
 }
 
 void Shader::SetSampler2D(const std::string_view& name, const SharedTexture& texture) {
-  if (texture && unit_ < GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS) {
+  std::call_once(is_texture_unit_limits_queried_, []() {
+    glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &texture_unit_limit_per_fragmet_shader_);
+    glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &texture_unit_limit_per_shader_);
+  });
+
+  if (texture && unit_ < GetTextureUnitLimitPerShader()) {
     if (const auto gl_texture = texture->MakeGLObject()) {
       glActiveTexture(GL_TEXTURE0 + unit_);
       glBindTexture(GL_TEXTURE_2D, gl_texture->GetId());

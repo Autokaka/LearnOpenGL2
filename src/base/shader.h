@@ -5,6 +5,7 @@
 #pragma once
 
 #include <glm/glm.hpp>
+#include <mutex>
 
 #include "macros.h"
 #include "scoped_gl_object.h"
@@ -23,6 +24,9 @@ class Shader final : public std::enable_shared_from_this<Shader> {
                                        const std::string_view& fragment_shader_source);
   static SharedShader CreateFromFile(const std::string_view& vertex_shader_path,
                                      const std::string_view& fragment_shader_path);
+  static int GetTextureUnitLimitPerFragmentShader();
+  static int GetTextureUnitLimitPerShader();
+
   ~Shader();
 
   uint32_t GetId() const { return id_; }
@@ -44,6 +48,10 @@ class Shader final : public std::enable_shared_from_this<Shader> {
   void SetSampler2D(const std::string_view& name, const SharedTexture& texture);
 
  private:
+  static int texture_unit_limit_per_fragmet_shader_;
+  static int texture_unit_limit_per_shader_;
+  static std::once_flag is_texture_unit_limits_queried_;
+
   GLuint id_;
   GLuint unit_;
 
