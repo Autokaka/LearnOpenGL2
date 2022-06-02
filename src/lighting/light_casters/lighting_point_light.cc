@@ -12,7 +12,7 @@
 #include "base/app.h"
 #include "base/buffer.h"
 #include "base/camera.h"
-#include "base/device.h"
+#include "base/render_pass.h"
 #include "base/shader.h"
 #include "lighting_point_light_shaders.h"
 
@@ -30,9 +30,7 @@ class MyApp final : public App, AppDelegate {
     Exit(-1);
   }
 
-  void WindowSizeDidChange(int width, int height) override {
-    glViewport(0, 0, width, height);
-  }
+  void WindowSizeDidChange(int width, int height) override { glViewport(0, 0, width, height); }
 
   void KeyboardEvent(const KeyStateGetter& key_state_getter) override {
     if (key_state_getter(GLFW_KEY_ESCAPE) == GLFW_PRESS) {
@@ -81,10 +79,8 @@ class MyApp final : public App, AppDelegate {
     material_.specular = Texture::CreateFromFile("container2_specular.png");
 
     // create shader program
-    lighted_shader_ =
-        Shader::CreateFromSource(common_vsh.data(), lighted_fsh.data());
-    lighting_shader_ =
-        Shader::CreateFromSource(common_vsh.data(), lighting_fsh.data());
+    lighted_shader_ = Shader::CreateFromSource(common_vsh.data(), lighted_fsh.data());
+    lighting_shader_ = Shader::CreateFromSource(common_vsh.data(), lighting_fsh.data());
     if (!lighted_shader_ || !lighting_shader_) {
       Exit(-1);
     }
@@ -100,18 +96,16 @@ class MyApp final : public App, AppDelegate {
     // do actual rendering
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glm::mat4 view = camera_.GetViewMatrix();
-    glm::mat4 projection =
-        glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.f);
+    glm::mat4 projection = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.f);
 
-    device_->UseVertexBuffer(vbo_);
+    render_pass_->UseVertexBuffer(vbo_);
 
     {  // draw lighted entity
-      device_->UseProgram(lighted_shader_);
+      render_pass_->UseProgram(lighted_shader_);
       {
         lighted_shader_->SetVec3("u_view_position", camera_.GetPosition());
 
-        const auto attenuation = AttenuationReference::GetProperModel(
-            light_.expected_cast_distance_);
+        const auto attenuation = AttenuationReference::GetProperModel(light_.expected_cast_distance_);
         lighted_shader_->SetVec3("u_light.position", light_.position);
         lighted_shader_->SetVec4("u_light.ambient", light_.ambient);
         lighted_shader_->SetVec4("u_light.diffuse", light_.diffuse);
@@ -121,8 +115,7 @@ class MyApp final : public App, AppDelegate {
         lighted_shader_->SetFloat("u_light.quadratic", attenuation.quadratic);
 
         lighted_shader_->SetSampler2D("u_material.diffuse", material_.diffuse);
-        lighted_shader_->SetSampler2D("u_material.specular",
-                                      material_.specular);
+        lighted_shader_->SetSampler2D("u_material.specular", material_.specular);
         lighted_shader_->SetFloat("u_material.shininess", material_.shininess);
       }
       {
@@ -133,11 +126,11 @@ class MyApp final : public App, AppDelegate {
         lighted_shader_->SetMat4("u_projection", projection);
         lighted_shader_->SetMat4("u_normal_matrix", normal_matrix);
       }
-      device_->DrawContent();
+      render_pass_->DrawContent();
     }
 
     {  // draw lighting entity
-      device_->UseProgram(lighting_shader_);
+      render_pass_->UseProgram(lighting_shader_);
       { lighting_shader_->SetVec4("u_light_color", light_.specular); }
       {
         glm::mat4 model = glm::translate(glm::mat4(1.0f), light_.position);
@@ -148,7 +141,7 @@ class MyApp final : public App, AppDelegate {
         lighting_shader_->SetMat4("u_projection", projection);
         lighting_shader_->SetMat4("u_normal_matrix", normal_matrix);
       }
-      device_->DrawContent();
+      render_pass_->DrawContent();
     }
 
     DrawUI();
@@ -156,7 +149,7 @@ class MyApp final : public App, AppDelegate {
 
  private:
   Camera camera_;
-  SharedGPUDevice device_ = GPUDevice::Create();
+  SharedRenderPass render_pass_ = RenderPass::Create();
   SharedVertexBuffer vbo_;
   SharedShader lighted_shader_;
   SharedShader lighting_shader_;
@@ -183,16 +176,13 @@ class MyApp final : public App, AppDelegate {
   void DrawUI() {
     ImGui::Begin("Properties");
 
-    ImGui::SliderFloat3("light.position", glm::value_ptr(light_.position), -2,
-                        2, "%.1f");
-    ImGui::SliderFloat("light.expected_cast_distance",
-                       &light_.expected_cast_distance_, 7, 3250);
+    ImGui::SliderFloat3("light.position", glm::value_ptr(light_.position), -2, 2, "%.1f");
+    ImGui::SliderFloat("light.expected_cast_distance", &light_.expected_cast_distance_, 7, 3250);
     ImGui::ColorEdit4("light.ambient", glm::value_ptr(light_.ambient));
     ImGui::ColorEdit4("light.diffuse", glm::value_ptr(light_.diffuse));
     ImGui::ColorEdit4("light.specular", glm::value_ptr(light_.specular));
 
-    ImGui::SliderFloat("material.shininess", &material_.shininess, 2.0f,
-                       256.0f);
+    ImGui::SliderFloat("material.shininess", &material_.shininess, 2.0f, 256.0f);
 
     ImGui::End();
   }

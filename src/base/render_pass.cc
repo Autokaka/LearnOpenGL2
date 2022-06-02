@@ -2,26 +2,26 @@
  * Created by Autokaka (qq1909698494@gmail.com) on 2022/05/20.
  */
 
-#include "device.h"
+#include "render_pass.h"
 
-GPUDevice::GPUDevice() : current_vbo_(nullptr), current_program_(nullptr) {}
+RenderPass::RenderPass() : current_vbo_(nullptr), current_program_(nullptr) {}
 
-void GPUDevice::UseVertexBuffer(const SharedVertexBuffer& vbo) {
+void RenderPass::UseVertexBuffer(const SharedVertexBuffer& vbo) {
   current_vbo_ = vbo;
 }
 
-void GPUDevice::UseProgram(const SharedShader& shader) {
+void RenderPass::UseProgram(const SharedShader& shader) {
   current_shader_ = shader;
   if (current_shader_) {
     current_shader_->Use();
   }
 }
 
-void GPUDevice::UseProgram(const SharedProgram& program) {
+void RenderPass::UseProgram(const SharedProgram& program) {
   current_program_ = program;
 }
 
-void GPUDevice::DrawContent() {
+void RenderPass::DrawContent() {
   if (current_vbo_ && current_program_) {
     const auto gl_program = current_program_->MakeGLObject();
     if (gl_program) {

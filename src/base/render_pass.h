@@ -11,14 +11,14 @@
 #include "shader.h"
 #include "texture.h"
 
-class GPUDevice final {
+class RenderPass final {
  public:
-  MAKE_SHARED_CONSTRUCTOR(GPUDevice, Create);
+  MAKE_SHARED_CONSTRUCTOR(RenderPass, Create);
 
   void UseVertexBuffer(const SharedVertexBuffer& vbo);
   [[deprecated(
       "Shader will not be used directly in next version of forge-engine, "
-      "please use GPUDevice::UseProgram(const SharedProgram& "
+      "please use RenderPass::UseProgram(const SharedProgram& "
       "program) instead.")]] void
   UseProgram(const SharedShader& shader);
   void UseProgram(const SharedProgram& program);
@@ -31,8 +31,8 @@ class GPUDevice final {
       "Remove this feature in next release version of "
       "forge-engine.")]] SharedShader current_shader_;
 
-  GPUDevice();
+  RenderPass();
 
-  DISALLOW_COPY_ASSIGN_AND_MOVE(GPUDevice);
+  DISALLOW_COPY_ASSIGN_AND_MOVE(RenderPass);
 };
-using SharedGPUDevice = std::shared_ptr<GPUDevice>;
+using SharedRenderPass = std::shared_ptr<RenderPass>;

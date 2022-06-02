@@ -11,14 +11,14 @@
 
 #include "base/buffer.h"
 #include "base/camera.h"
-#include "base/device.h"
+#include "base/render_pass.h"
 #include "base/shader.h"
 #include "glm/fwd.hpp"
 
 namespace {
 
 Camera camera;
-SharedGPUDevice device = GPUDevice::Create();
+SharedRenderPass render_pass = RenderPass::Create();
 
 void OnWindowSizeChangedCallback(GLFWwindow* window, int width, int height) {
   glViewport(0, 0, width, height);
@@ -70,8 +70,7 @@ int main() {
   glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #endif
 
-  GLFWwindow* window =
-      glfwCreateWindow(800, 600, "LearnOpenGL", nullptr, nullptr);
+  GLFWwindow* window = glfwCreateWindow(800, 600, "LearnOpenGL", nullptr, nullptr);
   if (!window) {
     std::cout << "Failed to create GLFW window" << std::endl;
     glfwTerminate();
@@ -139,7 +138,7 @@ int main() {
     { "a_position", AttributeType::kVec3 },
   }));
   // clang-format on
-  device->UseVertexBuffer(vbo);
+  render_pass->UseVertexBuffer(vbo);
 
   // create shader program
   const char* common_vsh = R"__SHADER__(
@@ -177,10 +176,8 @@ void main() {
   FragColor = u_light_color;
 }
 )__SHADER__";
-  auto lighted_shader_program =
-      Shader::CreateFromSource(common_vsh, lighted_fsh);
-  auto lighting_shader_program =
-      Shader::CreateFromSource(common_vsh, lighting_fsh);
+  auto lighted_shader_program = Shader::CreateFromSource(common_vsh, lighted_fsh);
+  auto lighting_shader_program = Shader::CreateFromSource(common_vsh, lighting_fsh);
   if (!lighted_shader_program || !lighting_shader_program) {
     return -1;
   }
@@ -198,32 +195,27 @@ void main() {
     // do actual rendering
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glm::mat4 view = glm::inverse(camera.GetTransformMatrix());
-    glm::mat4 projection =
-        glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.f);
+    glm::mat4 projection = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.f);
 
     {  // draw lighted entity
-      device->UseProgram(lighted_shader_program);
-      lighted_shader_program->SetVec4("u_entity_color",
-                                      glm::vec4(1.0f, 0.5f, 0.31f, 1.0f));
-      lighted_shader_program->SetVec4("u_light_color",
-                                      glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
-      lighted_shader_program->SetMat4(
-          "u_model", glm::translate(glm::mat4(1.0f), glm::vec3(0, 0, 0)));
+      render_pass->UseProgram(lighted_shader_program);
+      lighted_shader_program->SetVec4("u_entity_color", glm::vec4(1.0f, 0.5f, 0.31f, 1.0f));
+      lighted_shader_program->SetVec4("u_light_color", glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
+      lighted_shader_program->SetMat4("u_model", glm::translate(glm::mat4(1.0f), glm::vec3(0, 0, 0)));
       lighted_shader_program->SetMat4("u_view", view);
       lighted_shader_program->SetMat4("u_projection", projection);
-      device->DrawContent();
+      render_pass->DrawContent();
     }
 
     {  // draw lighting entity
-      device->UseProgram(lighting_shader_program);
-      lighted_shader_program->SetVec4("u_light_color",
-                                      glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
+      render_pass->UseProgram(lighting_shader_program);
+      lighted_shader_program->SetVec4("u_light_color", glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
       glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(1, 1, -1));
       model = glm::scale(model, glm::vec3(0.1f));
       lighted_shader_program->SetMat4("u_model", model);
       lighted_shader_program->SetMat4("u_view", view);
       lighted_shader_program->SetMat4("u_projection", projection);
-      device->DrawContent();
+      render_pass->DrawContent();
     }
 
     glfwPollEvents();

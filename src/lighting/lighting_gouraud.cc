@@ -12,7 +12,7 @@
 #include "base/app.h"
 #include "base/buffer.h"
 #include "base/camera.h"
-#include "base/device.h"
+#include "base/render_pass.h"
 #include "base/shader.h"
 
 class MyApp final : public App, AppDelegate {
@@ -29,9 +29,7 @@ class MyApp final : public App, AppDelegate {
     Exit(-1);
   }
 
-  void WindowSizeDidChange(int width, int height) override {
-    glViewport(0, 0, width, height);
-  }
+  void WindowSizeDidChange(int width, int height) override { glViewport(0, 0, width, height); }
 
   void KeyboardEvent(const KeyStateGetter& key_state_getter) override {
     if (key_state_getter(GLFW_KEY_ESCAPE) == GLFW_PRESS) {
@@ -115,7 +113,7 @@ class MyApp final : public App, AppDelegate {
       { "a_normal", AttributeType::kVec3 },
     }));
     // clang-format on
-    device_->UseVertexBuffer(vbo);
+    render_pass_->UseVertexBuffer(vbo);
 
     // create shader program
     const char* common_vsh = R"__SHADER__(
@@ -208,11 +206,10 @@ void main() {
     // do actual rendering
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glm::mat4 view = glm::inverse(camera_.GetTransformMatrix());
-    glm::mat4 projection =
-        glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.f);
+    glm::mat4 projection = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.f);
 
     {  // draw lighted entity
-      device_->UseProgram(lighted_shader_);
+      render_pass_->UseProgram(lighted_shader_);
       {
         lighted_shader_->SetVec4("u_entity_color", entity_color_);
         lighted_shader_->SetVec4("u_light_color", light_color_);
@@ -232,11 +229,11 @@ void main() {
         lighted_shader_->SetMat4("u_projection", projection);
         lighted_shader_->SetMat4("u_normal_matrix", normal_matrix);
       }
-      device_->DrawContent();
+      render_pass_->DrawContent();
     }
 
     {  // draw lighting entity
-      device_->UseProgram(lighting_shader_);
+      render_pass_->UseProgram(lighting_shader_);
       { lighting_shader_->SetVec4("u_light_color", light_color_); }
       {
         glm::mat4 model = glm::translate(glm::mat4(1.0f), light_position_);
@@ -247,7 +244,7 @@ void main() {
         lighting_shader_->SetMat4("u_projection", projection);
         lighting_shader_->SetMat4("u_normal_matrix", normal_matrix);
       }
-      device_->DrawContent();
+      render_pass_->DrawContent();
     }
 
     DrawUI();
@@ -255,7 +252,7 @@ void main() {
 
  private:
   Camera camera_;
-  SharedGPUDevice device_ = GPUDevice::Create();
+  SharedRenderPass render_pass_ = RenderPass::Create();
   SharedShader lighted_shader_;
   SharedShader lighting_shader_;
 
@@ -275,8 +272,7 @@ void main() {
     ImGui::Begin("Properties");
     ImGui::ColorEdit4("light_color", glm::value_ptr(light_color_));
     ImGui::ColorEdit4("entity_color", glm::value_ptr(entity_color_));
-    ImGui::SliderFloat3("light_position", glm::value_ptr(light_position_), -2,
-                        2, "%.1f");
+    ImGui::SliderFloat3("light_position", glm::value_ptr(light_position_), -2, 2, "%.1f");
     ImGui::SliderFloat("ambient", &ambient_, 0.0f, 1.0f);
     ImGui::SliderFloat("diffuse", &diffuse_, 0.0f, 1.0f);
     ImGui::SliderFloat("specular", &specular_, 0.0f, 1.0f);
