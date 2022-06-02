@@ -48,10 +48,6 @@ class Shader final : public std::enable_shared_from_this<Shader> {
   void SetSampler2D(const std::string_view& name, const SharedTexture& texture);
 
  private:
-  static int texture_unit_limit_per_fragmet_shader_;
-  static int texture_unit_limit_per_shader_;
-  static std::once_flag is_texture_unit_limits_queried_;
-
   GLuint id_;
   GLuint unit_;
 
